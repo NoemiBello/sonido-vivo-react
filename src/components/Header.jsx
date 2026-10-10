@@ -1,16 +1,50 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
 function Header({ carrito, setCarrito }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [carritoAbierto, setCarritoAbierto] = useState(false);
 
+  const cantidadProductos = carrito.reduce(
+    (total, producto) => total + producto.cantidad,
+    0,
+  );
+
+  const totalCarrito = carrito.reduce(
+    (total, producto) =>
+      total + producto.precio * producto.cantidad,
+    0,
+  );
+
+  function cambiarCantidad(id, cambio) {
+    setCarrito(
+      carrito.map((producto) => {
+        if (producto.id !== id) {
+          return producto;
+        }
+
+        return {
+          ...producto,
+          cantidad: producto.cantidad + cambio,
+        };
+      }),
+    );
+  }
+
+  function eliminarProducto(id) {
+    setCarrito(
+      carrito.filter((producto) => producto.id !== id),
+    );
+  }
+
   return (
     <>
       <header className="cabecera-sitio">
-
         <Link className="marca" to="/">
-          <img src="/img/logo.png" alt="Sonido Vivo" />
+          <img
+            src="/img/logo.png"
+            alt="Sonido Vivo"
+          />
         </Link>
 
         <button
@@ -27,13 +61,38 @@ function Header({ carrito, setCarrito }) {
 
         <nav
           id="navegacion-principal"
-          className={`navegacion-principal ${menuAbierto ? 'menu-abierto' : ''}`}
+          className={`navegacion-principal ${
+            menuAbierto ? "menu-abierto" : ""
+          }`}
           aria-label="Navegación principal"
         >
-          <ul className="menu">
-            <li><Link to="/">Inicio</Link></li>
-            <li><Link to="/catalogo">Catálogo</Link></li>
-            <li><Link to="/servicios">Servicios</Link></li>
+          <ul
+            className="menu"
+            onClick={() => setMenuAbierto(false)}
+          >
+            <li>
+              <Link to="/">Inicio</Link>
+            </li>
+
+            <li>
+              <Link to="/catalogo">Catálogo</Link>
+            </li>
+
+            <li>
+              <Link to="/categorias">Categorías</Link>
+            </li>
+
+            <li>
+              <Link to="/ofertas">Ofertas</Link>
+            </li>
+
+            <li>
+              <Link to="/servicios">Servicios</Link>
+            </li>
+
+            <li>
+              <Link to="/vendedor">Vendedor</Link>
+            </li>
           </ul>
         </nav>
 
@@ -41,17 +100,25 @@ function Header({ carrito, setCarrito }) {
           id="abrir-carrito"
           className="acceso-carrito"
           type="button"
-          aria-label="Abrir carrito de compras"
+          aria-label="Abrir o cerrar carrito de compras"
           aria-expanded={carritoAbierto}
           aria-controls="panel-carrito"
           onClick={() => setCarritoAbierto(!carritoAbierto)}
         >
-          <span className="icono-carrito" aria-hidden="true">🛒</span>
-          <span id="cantidad-carrito" className="cantidad-carrito">
-            {carrito.reduce((total, producto) => total + producto.cantidad, 0)}
+          <span
+            className="icono-carrito"
+            aria-hidden="true"
+          >
+            🛒
+          </span>
+
+          <span
+            id="cantidad-carrito"
+            className="cantidad-carrito"
+          >
+            {cantidadProductos}
           </span>
         </button>
-
       </header>
 
       {carritoAbierto && (
@@ -74,69 +141,69 @@ function Header({ carrito, setCarrito }) {
           </div>
 
           <div className="panel-carrito-contenido">
-
             <div id="lista-carrito">
               {carrito.length === 0 ? (
                 <p>Tu carrito está vacío.</p>
               ) : (
                 carrito.map((producto) => (
-
-                  <div key={producto.id} className="item-carrito">
+                  <div
+                    key={producto.id}
+                    className="item-carrito"
+                  >
                     <p>{producto.nombre}</p>
 
                     <p>
-                      {producto.cantidad} × ${producto.precio.toLocaleString("es-CL")}
+                      {producto.cantidad} × $
+                      {producto.precio.toLocaleString("es-CL")}
                     </p>
 
                     <div className="controles-panel-carrito">
                       <button
                         type="button"
-                        onClick={() => setCarrito(
-                          carrito.map((item) =>
-                            item.id === producto.id
-                              ? { ...item, cantidad: item.cantidad + 1 }
-                              : item
-                          )
-                        )}
+                        aria-label={`Aumentar cantidad de ${producto.nombre}`}
+                        disabled={
+                          producto.stock !== undefined &&
+                          producto.cantidad >= producto.stock
+                        }
+                        onClick={() =>
+                          cambiarCantidad(producto.id, 1)
+                        }
                       >
                         +
                       </button>
 
                       <button
                         type="button"
-                        disabled={producto.cantidad === 1}
-                        onClick={() => setCarrito(
-                          carrito.map((item) =>
-                            item.id === producto.id
-                              ? { ...item, cantidad: item.cantidad - 1 }
-                              : item
-                          )
-                        )}
+                        aria-label={`Disminuir cantidad de ${producto.nombre}`}
+                        disabled={producto.cantidad <= 1}
+                        onClick={() =>
+                          cambiarCantidad(producto.id, -1)
+                        }
                       >
                         −
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => setCarrito(
-                          carrito.filter((item) => item.id !== producto.id)
-                        )}
+                        onClick={() =>
+                          eliminarProducto(producto.id)
+                        }
                       >
                         Eliminar
                       </button>
                     </div>
                   </div>
-
-
                 ))
               )}
             </div>
-            <p id="total-carrito-panel" className="total-carrito">
-              Total: ${carrito.reduce(
-                (total, producto) => total + producto.precio * producto.cantidad,
-                0
-              ).toLocaleString("es-CL")}
+
+            <p
+              id="total-carrito-panel"
+              className="total-carrito"
+            >
+              Total: ${totalCarrito.toLocaleString("es-CL")}
             </p>
+
             <div id="acciones-carrito">
               <button
                 id="vaciar-carrito"

@@ -1,0 +1,271 @@
+.sv-pagina {
+  width: 90%;
+  max-width: 75rem;
+  margin: 2rem auto;
+}
+
+.sv-pagina h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  margin-bottom: 1rem;
+}
+
+.sv-pagina h2 {
+  margin: 1rem 0;
+}
+
+.sv-filtros,
+.sv-toolbar,
+.sv-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.sv-filtros {
+  padding: 1rem;
+  background: #0d212d;
+  border: 1px solid #1e3a4c;
+  border-radius: 0.75rem;
+}
+
+.sv-filtros label {
+  flex: 1;
+  min-width: 10rem;
+}
+
+label {
+  display: block;
+}
+
+input,
+select,
+textarea {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.4rem 0;
+  background: #041018;
+  color: white;
+  border: 1px solid #537082;
+  border-radius: 0.4rem;
+  font: inherit;
+}
+
+textarea {
+  min-height: 6rem;
+}
+
+.sv-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sv-check input {
+  width: auto;
+}
+
+.sv-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 50rem;
+  margin: 1.5rem 0;
+}
+
+.sv-form p {
+  grid-column: 1 / -1;
+  color: #fda4af;
+}
+
+.sv-resumen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.sv-resumen article {
+  padding: 1.5rem;
+  background: #0d212d;
+  border: 1px solid #1e3a4c;
+  border-radius: 0.75rem;
+}
+
+.sv-resumen strong {
+  display: block;
+  font-size: 2rem;
+  color: #2dd4bf;
+}
+
+.sv-tabs a {
+  padding: 0.5rem;
+}
+
+.sv-tabs a.active {
+  border-bottom: 2px solid #2dd4bf;
+}
+
+.sv-tabla {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #1e3a4c;
+}
+
+th {
+  background: #0d212d;
+}
+
+td small {
+  display: block;
+  color: #a8bcc8;
+}
+
+td button {
+  margin: 0.4rem;
+}
+
+.sv-pagina button,
+.sv-tabs button {
+  padding: 0.7rem 1rem;
+  border: 1px solid #2dd4bf;
+  border-radius: 0.4rem;
+  background: #0d212d;
+  color: #2dd4bf;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sv-pagina .boton {
+  background: #2dd4bf;
+  color: #041018;
+}
+
+.sv-pagina button:hover {
+  background: #14b8a6;
+  color: #041018;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tarjeta-producto {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tarjeta-producto h2 {
+  font-size: 1.1rem;
+}
+
+.tarjeta-producto .boton {
+  margin-top: auto;
+}
+
+.insignia {
+  align-self: flex-start;
+  padding: 0.2rem 0.7rem;
+  border-radius: 2rem;
+  background: #2dd4bf;
+  color: #041018;
+}
+
+.precio del {
+  font-size: 0.9rem;
+  color: #a8bcc8;
+}
+
+.sv-detalle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.sv-detalle img {
+  width: 100%;
+  max-height: 30rem;
+  object-fit: contain;
+  background: white;
+  border-radius: 0.75rem;
+}
+
+.sv-detalle p {
+  margin: 1rem 0;
+}
+
+.sv-aviso {
+  width: 90%;
+  margin: auto;
+  color: #2dd4bf;
+}
+
+.sv-vacio {
+  padding: 2rem;
+  border: 1px dashed #537082;
+  border-radius: 0.75rem;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+@media (max-width: 48rem) {
+  .sv-form,
+  .sv-detalle {
+    grid-template-columns: 1fr;
+  }
+
+  .sv-resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .sv-pagina {
+    width: 94%;
+  }
+
+  .grilla-productos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tarjeta-producto {
+    padding: 0.75rem;
+    min-width: 0;
+  }
+
+  .tarjeta-producto img {
+    height: 9rem;
+  }
+
+  .sv-toolbar {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 23rem) {
+  .grilla-productos {
+    grid-template-columns: 1fr;
+  }
+}

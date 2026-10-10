@@ -1,138 +1,252 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import Inicio from './components/Inicio';
-import DetalleProducto from './components/DetalleProducto';
-import Catalogo from './components/Catalogo';
-import Servicios from './components/Servicios';
-import Carrito from './components/Carrito';
-import Footer from './components/Footer';
+import { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+} from "react-router-dom";
 
-import './styles/estilos.css';
+import Header from "./components/Header";
+import Inicio from "./components/Inicio";
+import DetalleProducto from "./components/DetalleProducto";
+import Catalogo from "./components/Catalogo";
+import Servicios from "./components/Servicios";
+import Carrito from "./components/Carrito";
+import Footer from "./components/Footer";
 
-function App() {
+import TiendaProvider from "./context/TiendaProvider";
+import { useTienda } from "./context/TiendaContext";
 
-  const [carrito, setCarrito] = useState(() => {
-    const carritoGuardado = localStorage.getItem('carrito');
-    return carritoGuardado ? JSON.parse(carritoGuardado) : [];
-  });
+import Categorias, {
+  DetalleCategoria,
+} from "./pages/Categorias";
 
-  useEffect(() => {
-    localStorage.setItem('carrito', JSON.stringify(carrito));
-  }, [carrito]);
+import {
+  AccesoVendedor,
+  VendedorLayout,
+  ListaProductos,
+  FormularioProducto,
+  AdminCategorias,
+} from "./pages/Vendedor";
 
-  const agregarAlCarrito = (producto) => {
-    setCarrito((carritoActual) => {
+import { precioFinal } from "./utils/productos";
 
-      const productoExistente = carritoActual.find(
-        (item) => item.id === producto.id
+import "./styles/estilos.css";
+import "./styles/react.css";
+
+function Contenido() {
+  const { productos } = useTienda();
+
+  const [mensaje, setMensaje] = useState("");
+
+  const [carrito, setCarritoOriginal] = useState(() => {
+    try {
+      const guardado = JSON.parse(
+        localStorage.getItem("carrito"),
       );
 
-      if (productoExistente) {
-        return carritoActual.map((item) =>
-          item.id === producto.id
-            ? { ...item, cantidad: item.cantidad + 1 }
-            : item
-        );
+      return Array.isArray(guardado) ? guardado : [];
+    } catch {
+      return [];
+    }
+  });
+
+  function normalizar(lista) {
+    return lista.flatMap((item) => {
+      const producto = productos.find(
+        (actual) => actual.id === Number(item.id),
+      );
+
+      if (!producto || producto.stock === 0) {
+        return [];
       }
 
-      return [...carritoActual, { ...producto, cantidad: 1 }];
+      return [
+        {
+          ...producto,
+          precio: precioFinal(producto),
+          cantidad: Math.min(
+            producto.stock,
+            Math.max(1, Number(item.cantidad) || 1),
+          ),
+        },
+      ];
     });
-  };
+  }
 
+  const carritoActual = normalizar(carrito);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "carrito",
+      JSON.stringify(carrito),
+    );
+  }, [carrito]);
+
+  function setCarrito(lista) {
+    setCarritoOriginal(normalizar(lista));
+  }
+
+  function agregarAlCarrito(producto) {
+    const existente = carritoActual.find(
+      (actual) => actual.id === producto.id,
+    );
+
+    const cantidadActual = existente?.cantidad || 0;
+
+    if (
+      producto.stock === 0 ||
+      cantidadActual >= producto.stock
+    ) {
+      setMensaje("No hay más unidades disponibles.");
+      return;
+    }
+
+    setCarrito([
+      ...carritoActual.filter(
+        (actual) => actual.id !== producto.id,
+      ),
+      {
+        ...producto,
+        cantidad: cantidadActual + 1,
+      },
+    ]);
+
+    setMensaje("Producto añadido al carrito.");
+  }
 
   return (
     <BrowserRouter>
-      <Header carrito={carrito} setCarrito={setCarrito} />
+      <Header
+        carrito={carritoActual}
+        setCarrito={setCarrito}
+      />
+
+      <div className="sv-aviso" role="status">
+        {mensaje}
+      </div>
 
       <main id="contenido-principal">
         <Routes>
           <Route
             path="/"
-            element={<Inicio agregarAlCarrito={agregarAlCarrito} />}
+            element={
+              <Inicio agregarAlCarrito={agregarAlCarrito} />
+            }
           />
+
           <Route
             path="/catalogo"
-            element={<Catalogo agregarAlCarrito={agregarAlCarrito} />}
+            element={
+              <Catalogo agregarAlCarrito={agregarAlCarrito} />
+            }
           />
-          <Route path="/servicios" element={<Servicios />} />
+
+          <Route
+            path="/ofertas"
+            element={
+              <Catalogo
+                ofertas
+                agregarAlCarrito={agregarAlCarrito}
+              />
+            }
+          />
+
+          <Route
+            path="/categorias"
+            element={<Categorias />}
+          />
+
+          <Route
+            path="/categorias/:id"
+            element={
+              <DetalleCategoria
+                agregarAlCarrito={agregarAlCarrito}
+              />
+            }
+          />
+
+          <Route
+            path="/productos/:id"
+            element={
+              <DetalleProducto
+                agregarAlCarrito={agregarAlCarrito}
+              />
+            }
+          />
+
+          {[1, 2, 3].map((id) => (
+            <Route
+              key={id}
+              path={`/producto${id}`}
+              element={
+                <DetalleProducto
+                  id={id}
+                  agregarAlCarrito={agregarAlCarrito}
+                />
+              }
+            />
+          ))}
+
+          <Route
+            path="/servicios"
+            element={<Servicios />}
+          />
+
           <Route
             path="/carrito"
-            element={<Carrito carrito={carrito} setCarrito={setCarrito} />}
-          />
-
-
-          <Route
-            path="/producto1"
             element={
-              <DetalleProducto
-                agregarAlCarrito={agregarAlCarrito}
-                id="1"
-                categoria="Guitarras eléctricas"
-                nombre="Guitarra eléctrica SGR by Schecter C-1 Gloss Black"
-                imagen="/img/guitarra-schecter.jpg"
-                precio="$279.900"
-                descripcion="Guitarra eléctrica de 6 cuerdas, ideal para quienes buscan un instrumento versátil para práctica, ensayo y presentaciones."
-                caracteristicas={[
-                  'Tipo: guitarra eléctrica de 6 cuerdas.',
-                  'Cuerpo: basswood (tilo) con acabado Gloss Black.',
-                  'Mástil: arce (maple), perfil Thin C.',
-                  'Diapasón: palo de rosa con 24 trastes medium.',
-                  'Cápsulas: Schecter Diamond Plus, configuración HH.',
-                  'Controles: volumen, tono y selector de 3 posiciones.'
-                ]}
-                compatibilidad='Compatible con amplificadores y pedaleras de guitarra mediante una conexión jack estándar de 1/4". Sus cápsulas pasivas funcionan sin batería y permiten reemplazarlas por otros modelos compatibles si se desea personalizar el sonido del instrumento.'
+              <Carrito
+                carrito={carritoActual}
+                setCarrito={setCarrito}
               />
             }
           />
 
           <Route
-            path="/producto2"
-            element={
-              <DetalleProducto
-                agregarAlCarrito={agregarAlCarrito}
-                id="2"
-                categoria="Micrófonos"
-                nombre="Micrófono dinámico vocal Shure SM58"
-                imagen="/img/microfono.jpg"
-                precio="$129.900"
-                stock={8}
-                descripcion="Micrófono dinámico vocal diseñado para presentaciones en vivo, ensayos y grabaciones. Su patrón cardioide ayuda a captar principalmente el sonido que viene desde el frente, reduciendo parte del ruido proveniente de los costados y la parte posterior."
-                caracteristicas={[
-                  'Tipo: micrófono dinámico vocal.',
-                  'Patrón polar: cardioide.',
-                  'Respuesta de frecuencia: 50 Hz a 15 kHz.',
-                  'Conector: XLR de 3 pines.',
-                  'Uso recomendado: voces en vivo, ensayos y grabaciones.',
-                  'Construcción resistente para uso frecuente y transporte.'
-                ]}
-                compatibilidad="Compatible con consolas de audio, interfaces y otros equipos que dispongan de una entrada para micrófono XLR. Al ser un micrófono dinámico, puede utilizarse sin alimentación phantom."
-              />
-            }
+            path="/login"
+            element={<AccesoVendedor />}
           />
 
           <Route
-            path="/producto3"
+            path="/vendedor"
+            element={<VendedorLayout />}
+          >
+            <Route
+              index
+              element={<ListaProductos />}
+            />
+
+            <Route
+              path="stock-critico"
+              element={<ListaProductos criticos />}
+            />
+
+            <Route
+              path="productos/nuevo"
+              element={<FormularioProducto key="nuevo" />}
+            />
+
+            <Route
+              path="productos/:id/editar"
+              element={<FormularioProducto />}
+            />
+
+            <Route
+              path="categorias"
+              element={<AdminCategorias />}
+            />
+          </Route>
+
+          <Route
+            path="*"
             element={
-              <DetalleProducto
-                agregarAlCarrito={agregarAlCarrito}
-                id="3"
-                categoria="Amplificadores"
-                nombre="Amplificador Behringer HA-20R"
-                imagen="/img/amplificador-behringe.jpg"
-                precio="$145.990"
-                stock={5}
-                descripcion="Amplificador de guitarra de 20 W diseñado para práctica y ensayo. Incorpora controles que permiten ajustar el sonido del instrumento y un efecto de reverberación para añadir profundidad al audio."
-                caracteristicas={[
-                  'Potencia: 20 W.',
-                  'Tipo: amplificador para guitarra eléctrica.',
-                  'Altavoz: 8 pulgadas.',
-                  'Canales: limpio y overdrive.',
-                  'Ecualización: controles de graves, medios y agudos.',
-                  'Efecto integrado: reverberación.'
-                ]}
-                compatibilidad='Compatible con guitarras eléctricas que utilicen una conexión estándar de 1/4". También permite conectar audífonos para practicar de forma privada y una fuente de audio externa para acompañar la práctica con música.'
-              />
+              <section className="sv-pagina">
+                <h1>Página no encontrada</h1>
+                <Link to="/catalogo">
+                  Ir al catálogo
+                </Link>
+              </section>
             }
           />
         </Routes>
@@ -143,4 +257,10 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <TiendaProvider>
+      <Contenido />
+    </TiendaProvider>
+  );
+}

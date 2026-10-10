@@ -1,77 +1,72 @@
-import { Link } from 'react-router-dom';
+import { Link, useParams } from "react-router-dom";
+import { useTienda } from "../context/TiendaContext";
+import { moneda, precioFinal } from "../utils/productos";
 
-function DetalleProducto({
-    id,
-    categoria,
-    nombre,
-    imagen,
-    precio,
-    stock,
-    descripcion,
-    caracteristicas,
-    compatibilidad,
-    agregarAlCarrito
+export default function DetalleProducto({
+  agregarAlCarrito,
+  id: idProp,
 }) {
+  const { id } = useParams();
+  const { productos, categorias } = useTienda();
+
+  const producto = productos.find(
+    (actual) => actual.id === Number(idProp || id),
+  );
+
+  if (!producto) {
     return (
-        <article className="producto-detalle">
-            <header>
-                <p className="etiqueta">
-                    <Link to="/catalogo">Volver al catálogo</Link>
-                    {' / '}
-                    {categoria}
-                </p>
-
-                <h1>{nombre}</h1>
-            </header>
-
-            <figure>
-                <img src={imagen} alt={nombre} />
-                <figcaption>{nombre}.</figcaption>
-            </figure>
-
-            <p className="precio">{precio}</p>
-
-            <p className="stock-producto">
-                {stock !== undefined && stock !== null
-                    ? `Stock: ${stock} unidades`
-                    : 'Stock por confirmar'}
-            </p>
-
-
-            <button
-                type="button"
-                className="boton-agregar"
-                onClick={() => agregarAlCarrito({
-                    id: Number(id),
-                    nombre: nombre,
-                    precio: Number(precio.replace(/[^0-9]/g, '')),
-                    imagen: imagen
-                })}
-            >
-                Agregar al carrito
-            </button>
-
-
-            <h2>Descripción</h2>
-            <p>{descripcion}</p>
-
-            <h2>Características</h2>
-            <ul>
-                {caracteristicas.map((caracteristica, index) => (
-                    <li key={index}>{caracteristica}</li>
-                ))}
-            </ul>
-
-            <h2>Compatibilidad</h2>
-            <p>{compatibilidad}</p>
-
-            <p>
-                <p>
-                    <Link to="/catalogo">Volver al catálogo</Link>
-                </p>
-            </p>
-        </article>
+      <section className="sv-pagina">
+        <h1>Producto no encontrado</h1>
+        <Link to="/catalogo">Volver al catálogo</Link>
+      </section>
     );
-}
+  }
 
-export default DetalleProducto;
+  const categoria = categorias.find(
+    (actual) => actual.id === producto.categoriaId,
+  );
+
+  return (
+    <article className="sv-pagina">
+      <Link to="/catalogo">← Catálogo</Link>
+
+      <div className="sv-detalle">
+        <img
+          src={producto.imagen || "/img/logo.png"}
+          alt={producto.nombre}
+        />
+
+        <div>
+          <Link to={`/categorias/${producto.categoriaId}`}>
+            {categoria?.nombre}
+          </Link>
+
+          <h1>{producto.nombre}</h1>
+          <p>Código: {producto.codigo}</p>
+          <p>{producto.descripcion}</p>
+
+          <p className="precio">
+            {moneda(precioFinal(producto))}
+          </p>
+
+          <p>Stock: {producto.stock} unidades</p>
+
+          <button
+            className="boton"
+            disabled={producto.stock === 0}
+            onClick={() =>
+              agregarAlCarrito({
+                ...producto,
+                precio: precioFinal(producto),
+              })
+            }
+          >
+            {producto.stock > 0
+              ? "Añadir al carrito"
+              : "Sin stock"}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}

@@ -1,91 +1,160 @@
+import { useState } from "react";
+import { useTienda } from "../context/TiendaContext";
+import TarjetaProducto from "./TarjetaProducto";
+import { precioFinal } from "../utils/productos";
 
-import { Link } from 'react-router-dom';
+export default function Catalogo({
+  agregarAlCarrito,
+  categoriaId,
+  ofertas = false,
+}) {
+  const { productos, categorias } = useTienda();
 
-function Catalogo({ agregarAlCarrito }) {
+  const [busqueda, setBusqueda] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [disponibles, setDisponibles] = useState(false);
+  const [orden, setOrden] = useState("nombre");
+
+  const lista = productos
+    .filter((producto) => {
+      const coincideCategoriaPagina =
+        !categoriaId || producto.categoriaId === categoriaId;
+
+      const coincideCategoriaFiltro =
+        !categoria || producto.categoriaId === Number(categoria);
+
+      const coincideOferta =
+        !ofertas || producto.descuento > 0;
+
+      const coincideDisponibilidad =
+        !disponibles || producto.stock > 0;
+
+      const texto =
+        `${producto.nombre} ${producto.codigo} ${producto.descripcion}`;
+
+      const coincideBusqueda = texto
+        .toLocaleLowerCase()
+        .includes(busqueda.toLocaleLowerCase());
+
+      return (
+        coincideCategoriaPagina &&
+        coincideCategoriaFiltro &&
+        coincideOferta &&
+        coincideDisponibilidad &&
+        coincideBusqueda
+      );
+    })
+    .sort((a, b) => {
+      if (orden === "nombre") {
+        return a.nombre.localeCompare(b.nombre);
+      }
+
+      if (orden === "menor") {
+        return precioFinal(a) - precioFinal(b);
+      }
+
+      return precioFinal(b) - precioFinal(a);
+    });
+
+  let titulo = "Catálogo de productos";
+
+  if (ofertas) {
+    titulo = "Ofertas";
+  } else if (categoriaId) {
+    titulo = categorias.find(
+      (categoria) => categoria.id === categoriaId,
+    )?.nombre;
+  }
+
   return (
-    <section aria-labelledby="titulo-catalogo">
-      <h1 id="titulo-catalogo">Catálogo</h1>
+    <section className="sv-pagina">
+      <p className="etiqueta">
+        SONIDO VIVO / EXPLORA TU SONIDO
+      </p>
+
+      <h1>{titulo}</h1>
+
+      <div className="sv-filtros">
+        <label>
+          Buscar
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(evento) =>
+              setBusqueda(evento.target.value)
+            }
+            placeholder="Nombre o código"
+          />
+        </label>
+
+        {!categoriaId && (
+          <label>
+            Categoría
+            <select
+              value={categoria}
+              onChange={(evento) =>
+                setCategoria(evento.target.value)
+              }
+            >
+              <option value="">Todas</option>
+
+              {categorias.map((categoria) => (
+                <option
+                  key={categoria.id}
+                  value={categoria.id}
+                >
+                  {categoria.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        <label>
+          Ordenar
+          <select
+            value={orden}
+            onChange={(evento) =>
+              setOrden(evento.target.value)
+            }
+          >
+            <option value="nombre">Nombre</option>
+            <option value="menor">Menor precio</option>
+            <option value="mayor">Mayor precio</option>
+          </select>
+        </label>
+
+        <label className="sv-check">
+          <input
+            type="checkbox"
+            checked={disponibles}
+            onChange={(evento) =>
+              setDisponibles(evento.target.checked)
+            }
+          />
+          Solo disponibles
+        </label>
+      </div>
+
+      <p aria-live="polite">
+        {lista.length} productos encontrados
+      </p>
 
       <div className="grilla-productos">
-
-        <article className="tarjeta-producto">
-          <img
-            src="/img/guitarra-schecter.jpg"
-            alt="Guitarra eléctrica SGR by Schecter C-1 Gloss Black"
+        {lista.map((producto) => (
+          <TarjetaProducto
+            key={producto.id}
+            producto={producto}
+            agregarAlCarrito={agregarAlCarrito}
           />
-
-          <h2>Guitarra eléctrica SGR by Schecter C-1 Gloss Black</h2>
-          <p>$279.900</p>
-
-          <button
-            type="button"
-            className="boton-agregar"
-            onClick={() => agregarAlCarrito({
-              id: 1,
-              nombre: "Guitarra eléctrica SGR by Schecter C-1 Gloss Black",
-              precio: 279900,
-              imagen: "/img/guitarra-schecter.jpg"
-            })}
-          >
-            Añadir al carrito
-          </button>
-
-          <Link to="/producto1">Ver detalle</Link>
-        </article>
-
-        <article className="tarjeta-producto">
-          <img
-            src="/img/microfono.jpg"
-            alt="Micrófono dinámico vocal Shure SM58"
-          />
-
-          <h2>Micrófono dinámico vocal Shure SM58</h2>
-          <p>$129.900</p>
-
-          <button
-            type="button"
-            className="boton-agregar"
-            onClick={() => agregarAlCarrito({
-              id: 2,
-              nombre: "Micrófono dinámico vocal Shure SM58",
-              precio: 129900,
-              imagen: "/img/microfono.jpg"
-            })}
-          >
-            Añadir al carrito
-          </button>
-
-          <Link to="/producto2">Ver detalle</Link>
-        </article>
-
-        <article className="tarjeta-producto">
-          <img
-            src="/img/amplificador-behringe.jpg"
-            alt="Amplificador de guitarra Behringer HA-20R 20W"
-          />
-
-          <h2>Amplificador de guitarra Behringer HA-20R 20W</h2>
-          <p>$145.990</p>
-
-          <button
-            type="button"
-            className="boton-agregar"
-            onClick={() => agregarAlCarrito({
-              id: 3,
-              nombre: "Amplificador de guitarra Behringer HA-20R 20W",
-              precio: 145990,
-              imagen: "/img/amplificador-behringe.jpg"
-            })}
-          >
-            Añadir al carrito
-          </button>
-
-          <Link to="/producto3">Ver detalle</Link>
-        </article>
-
+        ))}
       </div>
+
+      {lista.length === 0 && (
+        <p className="sv-vacio">
+          No hay productos que coincidan con tu búsqueda.
+        </p>
+      )}
     </section>
   );
 }
-
-export default Catalogo;

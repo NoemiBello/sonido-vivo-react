@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import SelectorCantidad from "./SelectorCantidad";
 
 function Header({ carrito, setCarrito }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -15,22 +16,6 @@ function Header({ carrito, setCarrito }) {
       total + producto.precio * producto.cantidad,
     0,
   );
-
-  function cambiarCantidad(id, cambio) {
-    setCarrito(
-      carrito.map((producto) => {
-        if (producto.id !== id) {
-          return producto;
-        }
-
-        return {
-          ...producto,
-          cantidad: producto.cantidad + cambio,
-        };
-      }),
-    );
-  }
-
   function eliminarProducto(id) {
     setCarrito(
       carrito.filter((producto) => producto.id !== id),
@@ -61,9 +46,8 @@ function Header({ carrito, setCarrito }) {
 
         <nav
           id="navegacion-principal"
-          className={`navegacion-principal ${
-            menuAbierto ? "menu-abierto" : ""
-          }`}
+          className={`navegacion-principal ${menuAbierto ? "menu-abierto" : ""
+            }`}
           aria-label="Navegación principal"
         >
           <ul
@@ -150,77 +134,72 @@ function Header({ carrito, setCarrito }) {
                     key={producto.id}
                     className="item-carrito"
                   >
-                    <p>{producto.nombre}</p>
+                    <img
+                      className="imagen-panel-carrito"
+                      src={producto.imagen}
+                      alt={producto.nombre}
+                    />
+                    <div className="detalle-panel-carrito">
+                      <p className="nombre-panel-carrito">
+                        {producto.nombre}
+                      </p>
 
-                    <p>
-                      {producto.cantidad} × $
-                      {producto.precio.toLocaleString("es-CL")}
-                    </p>
+                      <div className="controles-panel-carrito">
+                        <SelectorCantidad
+                          producto={producto}
+                          carrito={carrito}
+                          setCarrito={setCarrito}
+                        />
 
-                    <div className="controles-panel-carrito">
-                      <button
-                        type="button"
-                        aria-label={`Aumentar cantidad de ${producto.nombre}`}
-                        disabled={
-                          producto.stock !== undefined &&
-                          producto.cantidad >= producto.stock
-                        }
-                        onClick={() =>
-                          cambiarCantidad(producto.id, 1)
-                        }
-                      >
-                        +
-                      </button>
+                        <button
+                          type="button"
+                          aria-label={`Eliminar ${producto.nombre} del carrito`}
+                          onClick={() => eliminarProducto(producto.id)}
+                        >
+                          🗑️
+                        </button>
 
-                      <button
-                        type="button"
-                        aria-label={`Disminuir cantidad de ${producto.nombre}`}
-                        disabled={producto.cantidad <= 1}
-                        onClick={() =>
-                          cambiarCantidad(producto.id, -1)
-                        }
-                      >
-                        −
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          eliminarProducto(producto.id)
-                        }
-                      >
-                        Eliminar
-                      </button>
+                        <span className="precio-panel-carrito">
+                          ${producto.precio.toLocaleString("es-CL")}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))
               )}
             </div>
+            <div className="subtotal-panel-carrito">
+              <span>{cantidadProductos} artículos</span>
+              <span>${totalCarrito.toLocaleString("es-CL")}</span>
+            </div>
 
-            <p
+            <div
               id="total-carrito-panel"
               className="total-carrito"
             >
-              Total: ${totalCarrito.toLocaleString("es-CL")}
-            </p>
-
+              <span>Total</span>
+              <span>${totalCarrito.toLocaleString("es-CL")}</span>
+            </div>
             <div id="acciones-carrito">
-              <button
-                id="vaciar-carrito"
-                type="button"
-                onClick={() => setCarrito([])}
-              >
-                Vaciar carrito
-              </button>
+              {carrito.length > 0 && (
+                <Link
+                  to="/checkout"
+                  className="boton-tramitar"
+                  onClick={() => setCarritoAbierto(false)}
+                >
+                  TRAMITAR PEDIDO
+                </Link>
+              )}
 
               <Link
-                className="boton"
+                className="boton boton-ver-carrito"
                 to="/carrito"
                 onClick={() => setCarritoAbierto(false)}
               >
-                Ver carrito completo
+                CARRITO
               </Link>
             </div>
+
           </div>
         </aside>
       )}

@@ -1,4 +1,4 @@
-
+import { Link } from 'react-router-dom';
 function Footer() {
   return (
     <footer className="pie-sitio">
@@ -19,17 +19,15 @@ function Footer() {
 
         <section className="footer-columna">
           <h2>Navegación</h2>
-
           <ul>
-            <li><a href="/">Inicio</a></li>
-            <li><a href="/catalogo">Catálogo</a></li>
-            <li><a href="/servicios">Servicios</a></li>
-            <li><a href="/carrito">Carrito</a></li>
+            <li><Link to="/">Inicio</Link></li>
+            <li><Link to="/catalogo">Catálogo</Link></li>
+            <li><Link to="/servicios">Servicios</Link></li>
           </ul>
         </section>
 
         <section className="footer-columna">
-          <h3>Servicios</h3>
+          <h2>Servicios</h2>
 
           <p>
             Venta de instrumentos musicales y equipos de sonido.
@@ -41,7 +39,7 @@ function Footer() {
         </section>
 
         <section className="footer-columna">
-          <h3>Contacto</h3>
+          <h2>Contacto</h2>
 
           <address>
             <p>

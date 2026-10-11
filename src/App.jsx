@@ -12,6 +12,9 @@ import DetalleProducto from "./components/DetalleProducto";
 import Catalogo from "./components/Catalogo";
 import Servicios from "./components/Servicios";
 import Carrito from "./components/Carrito";
+import Checkout from "./components/Checkout";
+import CompraExitosa from "./components/CompraExitosa";
+import CompraFallida from "./components/CompraFallida";
 import Footer from "./components/Footer";
 
 import TiendaProvider from "./context/TiendaProvider";
@@ -121,10 +124,11 @@ function Contenido() {
         carrito={carritoActual}
         setCarrito={setCarrito}
       />
-
-      <div className="sv-aviso" role="status">
-        {mensaje}
-      </div>
+      {mensaje && (
+        <div className="sv-aviso" role="status">
+          {mensaje}
+        </div>
+      )}
 
       <main id="contenido-principal">
         <Routes>
@@ -201,6 +205,23 @@ function Contenido() {
                 setCarrito={setCarrito}
               />
             }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <Checkout
+                carrito={carritoActual}
+                setCarrito={setCarrito}
+              />
+            }
+          />
+          <Route
+            path="/compra-exitosa"
+            element={<CompraExitosa />}
+          />
+          <Route
+            path="/compra-fallida"
+            element={<CompraFallida />}
           />
 
           <Route

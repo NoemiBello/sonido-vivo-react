@@ -264,7 +264,7 @@ textarea:focus-visible {
   }
 }
 
-@media (max-width: 23rem) {
+@media (max-width: 767px) {
   .grilla-productos {
     grid-template-columns: 1fr;
   }

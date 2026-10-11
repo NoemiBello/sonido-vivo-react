@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import SelectorCantidad from "./SelectorCantidad";
 
 function Carrito({ carrito, setCarrito }) {
     const total = carrito.reduce((acumulador, producto) => {
@@ -18,8 +20,10 @@ function Carrito({ carrito, setCarrito }) {
                         </p>
                     ) : (
                         carrito.map((producto) => (
-                            <article className="tarjeta-carrito" key={producto.id}>
-
+                            <article
+                                className="tarjeta-carrito"
+                                key={producto.id}
+                            >
                                 <div className="informacion-producto-carrito">
 
                                     <img
@@ -31,65 +35,59 @@ function Carrito({ carrito, setCarrito }) {
                                     <p>{producto.nombre}</p>
 
                                     <p>
-                                        {producto.cantidad} × ${producto.precio.toLocaleString("es-CL")}
+                                        Precio unitario: ${producto.precio.toLocaleString("es-CL")}
+                                    </p>
+
+                                    <p className="subtotal-producto-carrito">
+                                        Subtotal: ${(producto.precio * producto.cantidad).toLocaleString("es-CL")}
                                     </p>
 
                                     <div className="controles-cantidad">
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setCarrito(
-                                                carrito.map((item) =>
-                                                    item.id === producto.id
-                                                        ? { ...item, cantidad: item.cantidad + 1 }
-                                                        : item
-                                                )
-                                            )}
-                                        >
-                                            +
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            disabled={producto.cantidad === 1}
-                                            onClick={() => setCarrito(
-                                                carrito.map((item) =>
-                                                    item.id === producto.id
-                                                        ? { ...item, cantidad: item.cantidad - 1 }
-                                                        : item
-                                                )
-                                            )}
-                                        >
-                                            −
-                                        </button>
-
+                                        <SelectorCantidad
+                                            key={producto.id}
+                                            producto={producto}
+                                            carrito={carrito}
+                                            setCarrito={setCarrito}
+                                        />
                                     </div>
+
+                                    {producto.stock != null && (
+                                        <p className="stock-carrito">
+                                            Stock disponible: {producto.stock} unidades
+                                        </p>
+                                    )}
+
 
                                     <button
                                         type="button"
                                         onClick={() => setCarrito(
-                                            carrito.filter((item) => item.id !== producto.id)
+                                            carrito.filter(
+                                                (item) => item.id !== producto.id
+                                            )
                                         )}
                                     >
                                         Eliminar
                                     </button>
 
                                 </div>
-
                             </article>
                         ))
                     )}
 
                 </section>
-
                 <div className="acciones-pagina-carrito">
                     <button
                         id="vaciar-carrito"
                         type="button"
                         onClick={() => setCarrito([])}
+                        disabled={carrito.length === 0}
                     >
                         Vaciar carrito
                     </button>
+
+                    <Link to="/catalogo">
+                        Seguir comprando
+                    </Link>
                 </div>
 
             </section>
@@ -106,10 +104,16 @@ function Carrito({ carrito, setCarrito }) {
 
                 <div className="fila-resumen total-resumen">
                     <span>Total</span>
+
                     <strong id="total-pagina-carrito">
                         ${total.toLocaleString("es-CL")}
                     </strong>
                 </div>
+                {carrito.length > 0 && (
+                    <Link to="/checkout" className="boton-finalizar-compra">
+                        Finalizar compra
+                    </Link>
+                )}
             </aside>
 
         </div>

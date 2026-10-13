@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import SelectorCantidad from "./SelectorCantidad";
 
 function Header({ carrito, setCarrito }) {
@@ -24,86 +24,120 @@ function Header({ carrito, setCarrito }) {
 
   return (
     <>
-      <header className="cabecera-sitio">
-        <Link className="marca" to="/">
-          <img
-            src="/img/logo.png"
-            alt="Sonido Vivo"
-          />
+      <header
+        className="navbar navbar-expand-lg navbar-dark px-3 px-lg-5 py-3 gap-3"
+        style={{ backgroundColor: "#0d212d" }}
+      >
+        <Link className="navbar-brand marca me-auto" to="/">
+          <img src="/img/logo.png" alt="Sonido Vivo" />
         </Link>
 
         <button
-          id="boton-menu"
-          className="boton-menu"
+          className="navbar-toggler"
           type="button"
           aria-label="Abrir o cerrar menú principal"
           aria-controls="navegacion-principal"
           aria-expanded={menuAbierto}
           onClick={() => setMenuAbierto(!menuAbierto)}
         >
-          <span aria-hidden="true">☰</span>
+          <span className="navbar-toggler-icon"></span>
         </button>
 
         <nav
           id="navegacion-principal"
-          className={`navegacion-principal ${menuAbierto ? "menu-abierto" : ""
-            }`}
+          className={`collapse navbar-collapse ${menuAbierto ? "show" : ""}`}
           aria-label="Navegación principal"
         >
-          <ul
-            className="menu"
-            onClick={() => setMenuAbierto(false)}
-          >
-            <li>
-              <Link to="/">Inicio</Link>
+          <ul className="navbar-nav ms-auto gap-lg-2">
+            <li className="nav-item">
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+                onClick={() => setMenuAbierto(false)}
+              >
+                Inicio
+              </NavLink>
             </li>
-
-            <li>
-              <Link to="/catalogo">Catálogo</Link>
+            <li className="nav-item">
+              <NavLink
+                to="/catalogo"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+                onClick={() => setMenuAbierto(false)}
+              >
+                Catálogo
+              </NavLink>
             </li>
-
-            <li>
-              <Link to="/categorias">Categorías</Link>
+            <li className="nav-item">
+              <NavLink
+                to="/categorias"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+                onClick={() => setMenuAbierto(false)}
+              >
+                Categorías
+              </NavLink>
             </li>
-
-            <li>
-              <Link to="/ofertas">Ofertas</Link>
+            <li className="nav-item">
+              <NavLink
+                to="/ofertas"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+                onClick={() => setMenuAbierto(false)}
+              >
+                Ofertas
+              </NavLink>
             </li>
-
-            <li>
-              <Link to="/servicios">Servicios</Link>
+            <li className="nav-item">
+              <NavLink
+                to="/servicios"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+                onClick={() => setMenuAbierto(false)}
+              >
+                Servicios
+              </NavLink>
             </li>
-
-            <li>
-              <Link to="/vendedor">Vendedor</Link>
+            <li className="nav-item">
+              <NavLink
+                to="/login"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+                onClick={() => setMenuAbierto(false)}
+              >
+                Vendedor
+              </NavLink>
             </li>
           </ul>
         </nav>
 
         <button
           id="abrir-carrito"
-          className="acceso-carrito"
+          className="btn btn-outline-light position-relative acceso-carrito"
           type="button"
           aria-label="Abrir o cerrar carrito de compras"
           aria-expanded={carritoAbierto}
           aria-controls="panel-carrito"
           onClick={() => setCarritoAbierto(!carritoAbierto)}
         >
-          <span
-            className="icono-carrito"
-            aria-hidden="true"
-          >
-            🛒
-          </span>
-
+          <span aria-hidden="true">🛒</span>
           <span
             id="cantidad-carrito"
-            className="cantidad-carrito"
+            className="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle"
           >
             {cantidadProductos}
           </span>
         </button>
       </header>
+
 
       {carritoAbierto && (
         <aside

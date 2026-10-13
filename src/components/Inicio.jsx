@@ -1,12 +1,15 @@
-import Carrusel from './Carrusel';
-import ProductosDestacados from './ProductosDestacados';
+import Carrusel from "./Carrusel";
+import ProductosDestacados from "./ProductosDestacados";
 
 function Inicio({ agregarAlCarrito }) {
   return (
-    <div className="container">
+    <main>
       <Carrusel />
-      <ProductosDestacados agregarAlCarrito={agregarAlCarrito} />
-    </div>
+
+      <ProductosDestacados
+        agregarAlCarrito={agregarAlCarrito}
+      />
+    </main>
   );
 }
 

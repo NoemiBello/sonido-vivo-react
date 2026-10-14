@@ -25,29 +25,40 @@ import Categorias, {
 } from "./pages/Categorias";
 
 import {
-  AccesoVendedor,
   VendedorLayout,
   ListaProductos,
   FormularioProducto,
   AdminCategorias,
 } from "./pages/Vendedor";
 
+import Nosotros from "./pages/Nosotros";
+import Blog from "./pages/Blog";
+import DetallePublicacion from "./pages/DetallePublicacion";
+import Contacto from "./pages/Contacto";
+import Registro from "./pages/Registro";
+import Login from "./pages/Login";
+import Perfil from "./pages/Perfil";
+import HistorialCompras from "./pages/HistorialCompras";
+
+import AdminLayout from "./pages/admin/AdminLayout";
+import DashboardAdmin from "./pages/admin/DashboardAdmin";
+import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminPedidos from "./pages/admin/AdminPedidos";
+import Reportes from "./pages/admin/Reportes";
+
 import { precioFinal } from "./utils/productos";
 
 import "./styles/estilos.css";
 import "./styles/react.css";
+import "./styles/manuel.css";
 
 function Contenido() {
   const { productos } = useTienda();
-
   const [mensaje, setMensaje] = useState("");
 
   const [carrito, setCarritoOriginal] = useState(() => {
     try {
-      const guardado = JSON.parse(
-        localStorage.getItem("carrito"),
-      );
-
+      const guardado = JSON.parse(localStorage.getItem("carrito"));
       return Array.isArray(guardado) ? guardado : [];
     } catch {
       return [];
@@ -80,10 +91,7 @@ function Contenido() {
   const carritoActual = normalizar(carrito);
 
   useEffect(() => {
-    localStorage.setItem(
-      "carrito",
-      JSON.stringify(carrito),
-    );
+    localStorage.setItem("carrito", JSON.stringify(carrito));
   }, [carrito]);
 
   function setCarrito(lista) {
@@ -124,6 +132,7 @@ function Contenido() {
         carrito={carritoActual}
         setCarrito={setCarrito}
       />
+
       {mensaje && (
         <div className="sv-aviso" role="status">
           {mensaje}
@@ -192,10 +201,15 @@ function Contenido() {
             />
           ))}
 
-          <Route
-            path="/servicios"
-            element={<Servicios />}
-          />
+          <Route path="/servicios" element={<Servicios />} />
+          <Route path="/nosotros" element={<Nosotros />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<DetallePublicacion />} />
+          <Route path="/contacto" element={<Contacto />} />
+          <Route path="/registro" element={<Registro />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/historial" element={<HistorialCompras />} />
 
           <Route
             path="/carrito"
@@ -206,6 +220,7 @@ function Contenido() {
               />
             }
           />
+
           <Route
             path="/checkout"
             element={
@@ -215,48 +230,35 @@ function Contenido() {
               />
             }
           />
-          <Route
-            path="/compra-exitosa"
-            element={<CompraExitosa />}
-          />
-          <Route
-            path="/compra-fallida"
-            element={<CompraFallida />}
-          />
 
-          <Route
-            path="/login"
-            element={<AccesoVendedor />}
-          />
+          <Route path="/compra-exitosa" element={<CompraExitosa />} />
+          <Route path="/compra-fallida" element={<CompraFallida />} />
 
-          <Route
-            path="/vendedor"
-            element={<VendedorLayout />}
-          >
-            <Route
-              index
-              element={<ListaProductos />}
-            />
-
+          <Route path="/vendedor" element={<VendedorLayout />}>
+            <Route index element={<ListaProductos />} />
             <Route
               path="stock-critico"
               element={<ListaProductos criticos />}
             />
-
             <Route
               path="productos/nuevo"
               element={<FormularioProducto key="nuevo" />}
             />
-
             <Route
               path="productos/:id/editar"
               element={<FormularioProducto />}
             />
-
             <Route
               path="categorias"
               element={<AdminCategorias />}
             />
+          </Route>
+
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<DashboardAdmin />} />
+            <Route path="usuarios" element={<AdminUsuarios />} />
+            <Route path="pedidos" element={<AdminPedidos />} />
+            <Route path="reportes" element={<Reportes />} />
           </Route>
 
           <Route

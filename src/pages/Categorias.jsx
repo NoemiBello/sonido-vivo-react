@@ -12,17 +12,34 @@ export function DetalleCategoria({ agregarAlCarrito }) {
 
   if (!categoria) {
     return (
-      <section className="sv-pagina">
-        <h1>Categoría no encontrada</h1>
-        <Link to="/categorias">Volver</Link>
+      <section
+        className="container py-4"
+        data-bs-theme="dark"
+      >
+        <div className="alert alert-warning">
+          Categoría no encontrada.
+        </div>
+
+        <Link
+          to="/categorias"
+          className="btn btn-outline-info"
+        >
+          Volver a categorías
+        </Link>
       </section>
     );
   }
 
   return (
     <>
-      <div className="sv-pagina">
-        <Link to="/categorias">← Categorías</Link>
+      <div className="container pt-4">
+        <Link
+          to="/categorias"
+          className="btn btn-outline-info mb-3"
+        >
+          ← Categorías
+        </Link>
+
         <p>{categoria.descripcion}</p>
       </div>
 
@@ -38,40 +55,64 @@ export default function Categorias() {
   const { categorias, productos } = useTienda();
 
   return (
-    <section className="sv-pagina">
-      <h1>Categorías</h1>
-      <p>Todo para tu próxima presentación.</p>
+    <section
+      className="container py-4"
+      data-bs-theme="dark"
+    >
+      <h1 className="mb-3">Categorías</h1>
 
-      <div className="grilla-productos">
+      <p className="mb-4">
+        Todo para tu próxima presentación.
+      </p>
+
+      <div className="row g-4">
         {categorias.map((categoria) => (
-          <Link
-            className="tarjeta-producto"
+          <div
             key={categoria.id}
-            to={`/categorias/${categoria.id}`}
+            className="col-6 col-lg-4"
           >
-            <img
-              src={categoria.imagen || "/img/logo.png"}
-              alt=""
-            />
+            <article className="card sv-card h-100">
+              <img
+                src={categoria.imagen || "/img/logo.png"}
+                alt={categoria.nombre}
+                className="card-img-top sv-imagen"
+              />
 
-            <h2>{categoria.nombre}</h2>
-            <p>{categoria.descripcion}</p>
+              <div className="card-body d-flex flex-column">
+                <h2 className="card-title h5">
+                  {categoria.nombre}
+                </h2>
 
-            <span>
-              {
-                productos.filter(
-                  (producto) =>
-                    producto.categoriaId === categoria.id,
-                ).length
-              }{" "}
-              productos →
-            </span>
-          </Link>
+                <p className="card-text">
+                  {categoria.descripcion}
+                </p>
+
+                <p className="text-info">
+                  {
+                    productos.filter(
+                      (producto) =>
+                        producto.categoriaId === categoria.id,
+                    ).length
+                  }{" "}
+                  productos
+                </p>
+
+                <Link
+                  to={`/categorias/${categoria.id}`}
+                  className="btn btn-outline-info mt-auto"
+                >
+                  Ver productos
+                </Link>
+              </div>
+            </article>
+          </div>
         ))}
       </div>
 
       {categorias.length === 0 && (
-        <p>No hay categorías disponibles.</p>
+        <div className="alert alert-info">
+          No hay categorías disponibles.
+        </div>
       )}
     </section>
   );

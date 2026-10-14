@@ -66,95 +66,136 @@ export default function Catalogo({
     )?.nombre;
   }
 
-  return (
-    <section className="sv-pagina">
-      <p className="etiqueta">
-        SONIDO VIVO / EXPLORA TU SONIDO
-      </p>
+ return (
+  <section
+    className="container sv-pagina py-4"
+    data-bs-theme="dark"
+  >
+    <p className="text-info">
+      SONIDO VIVO / EXPLORA TU SONIDO
+    </p>
 
-      <h1>{titulo}</h1>
+    <h1 className="mb-4">{titulo}</h1>
 
-      <div className="sv-filtros">
-        <label>
+    <div className="row g-3 align-items-end border rounded p-3 mb-4">
+      <div className="col-12 col-md-6 col-lg-4">
+        <label
+          htmlFor="buscar-producto"
+          className="form-label"
+        >
           Buscar
-          <input
-            type="search"
-            value={busqueda}
-            onChange={(evento) =>
-              setBusqueda(evento.target.value)
-            }
-            placeholder="Nombre o código"
-          />
         </label>
 
-        {!categoriaId && (
-          <label>
+        <input
+          id="buscar-producto"
+          type="search"
+          className="form-control"
+          value={busqueda}
+          onChange={(evento) =>
+            setBusqueda(evento.target.value)
+          }
+          placeholder="Nombre o código"
+        />
+      </div>
+
+      {!categoriaId && (
+        <div className="col-12 col-md-6 col-lg-3">
+          <label
+            htmlFor="filtrar-categoria"
+            className="form-label"
+          >
             Categoría
-            <select
-              value={categoria}
-              onChange={(evento) =>
-                setCategoria(evento.target.value)
-              }
-            >
-              <option value="">Todas</option>
-
-              {categorias.map((categoria) => (
-                <option
-                  key={categoria.id}
-                  value={categoria.id}
-                >
-                  {categoria.nombre}
-                </option>
-              ))}
-            </select>
           </label>
-        )}
 
-        <label>
-          Ordenar
           <select
-            value={orden}
+            id="filtrar-categoria"
+            className="form-select"
+            value={categoria}
             onChange={(evento) =>
-              setOrden(evento.target.value)
+              setCategoria(evento.target.value)
             }
           >
-            <option value="nombre">Nombre</option>
-            <option value="menor">Menor precio</option>
-            <option value="mayor">Mayor precio</option>
+            <option value="">Todas</option>
+
+            {categorias.map((categoria) => (
+              <option
+                key={categoria.id}
+                value={categoria.id}
+              >
+                {categoria.nombre}
+              </option>
+            ))}
           </select>
+        </div>
+      )}
+
+      <div className="col-12 col-md-6 col-lg-3">
+        <label
+          htmlFor="ordenar-productos"
+          className="form-label"
+        >
+          Ordenar
         </label>
 
-        <label className="sv-check">
+        <select
+          id="ordenar-productos"
+          className="form-select"
+          value={orden}
+          onChange={(evento) =>
+            setOrden(evento.target.value)
+          }
+        >
+          <option value="nombre">Nombre</option>
+          <option value="menor">Menor precio</option>
+          <option value="mayor">Mayor precio</option>
+        </select>
+      </div>
+
+      <div className="col-12 col-md-6 col-lg-2">
+        <div className="form-check">
           <input
+            id="solo-disponibles"
             type="checkbox"
+            className="form-check-input"
             checked={disponibles}
             onChange={(evento) =>
               setDisponibles(evento.target.checked)
             }
           />
-          Solo disponibles
-        </label>
+
+          <label
+            htmlFor="solo-disponibles"
+            className="form-check-label"
+          >
+            Solo disponibles
+          </label>
+        </div>
       </div>
+    </div>
 
-      <p aria-live="polite">
-        {lista.length} productos encontrados
-      </p>
+    <p aria-live="polite" className="mb-4">
+      {lista.length} productos encontrados
+    </p>
 
-      <div className="grilla-productos">
-        {lista.map((producto) => (
+    <div className="row g-4">
+      {lista.map((producto) => (
+        <div
+          key={producto.id}
+          className="col-6 col-lg-4"
+        >
           <TarjetaProducto
-            key={producto.id}
             producto={producto}
             agregarAlCarrito={agregarAlCarrito}
           />
-        ))}
-      </div>
+        </div>
+      ))}
+    </div>
 
-      {lista.length === 0 && (
-        <p className="sv-vacio">
-          No hay productos que coincidan con tu búsqueda.
-        </p>
-      )}
-    </section>
-  );
+    {lista.length === 0 && (
+      <div className="alert alert-info mt-4">
+        No hay productos que coincidan con tu búsqueda.
+      </div>
+    )}
+  </section>
+);
 }

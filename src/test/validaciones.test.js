@@ -37,4 +37,21 @@ describe("validaciones de formularios", () => {
       "Ya existe un usuario con ese correo.",
     );
   });
+
+  it("rechaza contraseñas diferentes en registro", () => {
+    const errores = validarRegistro(
+      {
+        nombre: "Manuel",
+        apellido: "Rodríguez",
+        correo: "manuel@correo.cl",
+        password: "123456",
+        confirmarPassword: "654321",
+      },
+      [],
+    );
+
+    expect(errores.confirmarPassword).toBe(
+      "Las contraseñas no coinciden.",
+    );
+  });
 });

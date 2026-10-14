@@ -42,4 +42,40 @@ describe("administración de usuarios", () => {
       ),
     ).toBe(true);
   });
+
+  it("permite editar un usuario existente", async () => {
+    const user = userEvent.setup();
+
+    render(<AdminUsuarios />);
+
+    const botonesEditar = screen.getAllByRole(
+      "button",
+      { name: "Editar" },
+    );
+
+    await user.click(botonesEditar[0]);
+
+    const nombre = screen.getByLabelText("Nombre");
+
+    await user.clear(nombre);
+    await user.type(nombre, "Camila Editada");
+
+    await user.click(
+      screen.getByRole("button", { name: "Guardar cambios" }),
+    );
+
+    expect(
+      screen.getByText(/Camila Editada/),
+    ).toBeInTheDocument();
+
+    const usuarios = JSON.parse(
+      localStorage.getItem("svReactUsuarios"),
+    );
+
+    expect(
+      usuarios.some(
+        (usuario) => usuario.nombre === "Camila Editada",
+      ),
+    ).toBe(true);
+  });
 });

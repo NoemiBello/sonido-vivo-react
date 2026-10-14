@@ -33,37 +33,57 @@ export function AccesoVendedor() {
   }
 
   return (
-    <section className="sv-pagina">
-      <h1>Acceso del vendedor</h1>
+    <section
+      className="container sv-pagina py-4"
+      data-bs-theme="dark"
+    >
+      <h1 className="mb-3">Acceso del vendedor</h1>
 
-      <p>
+      <p className="text-body-secondary">
         Acceso de demostración para la evaluación.
         No verifica credenciales en un servidor.
       </p>
 
-      <form className="sv-form" onSubmit={entrar}>
-        <label>
-          Correo
+      <form className="row g-3 my-3" onSubmit={entrar}>
+        <div className="col-12 col-md-6">
+          <label htmlFor="correo-vendedor" className="form-label">
+            Correo
+          </label>
+
           <input
+            id="correo-vendedor"
+            className="form-control"
             name="correo"
             type="email"
+            autoComplete="username"
             required
           />
-        </label>
+        </div>
 
-        <label>
-          Contraseña de demostración
+        <div className="col-12 col-md-6">
+          <label
+            htmlFor="clave-vendedor"
+            className="form-label"
+          >
+            Contraseña de demostración
+          </label>
+
           <input
+            id="clave-vendedor"
+            className="form-control"
             type="password"
+            autoComplete="current-password"
             minLength={4}
             maxLength={10}
             required
           />
-        </label>
+        </div>
 
-        <button className="boton">
-          Ingresar
-        </button>
+        <div className="col-12">
+          <button type="submit" className="btn btn-sonido">
+            Ingresar
+          </button>
+        </div>
       </form>
     </section>
   );
@@ -93,26 +113,49 @@ export function VendedorLayout() {
   }
 
   return (
-    <section className="sv-pagina">
-      <p className="etiqueta">ADMINISTRACIÓN</p>
-      <h1>Panel del vendedor</h1>
+    <section
+      className="container sv-pagina py-4"
+      data-bs-theme="dark"
+    >
+      <p className="text-info mb-2">ADMINISTRACIÓN</p>
 
-      <p>{localStorage.getItem("correoUsuario")}</p>
+      <h1 className="mb-3">Panel del vendedor</h1>
 
-      <nav className="sv-tabs">
-        <NavLink end to="/vendedor">
+      <p className="text-body-secondary">
+        {localStorage.getItem("correoUsuario")}
+      </p>
+
+      <nav
+        className="nav nav-pills gap-2 my-4"
+        aria-label="Administración del vendedor"
+      >
+        <NavLink
+          end
+          to="/vendedor"
+          className="nav-link"
+        >
           Productos
         </NavLink>
 
-        <NavLink to="/vendedor/categorias">
+        <NavLink
+          to="/vendedor/categorias"
+          className="nav-link"
+        >
           Categorías
         </NavLink>
 
-        <NavLink to="/vendedor/stock-critico">
+        <NavLink
+          to="/vendedor/stock-critico"
+          className="nav-link"
+        >
           Stock crítico
         </NavLink>
 
-        <button onClick={salir}>
+        <button
+          type="button"
+          className="btn btn-outline-danger ms-md-auto"
+          onClick={salir}
+        >
           Cerrar sesión
         </button>
       </nav>
@@ -145,6 +188,13 @@ export function ListaProductos({ criticos = false }) {
     return coincideStock && coincideBusqueda;
   });
 
+  const stockTotal = productos.reduce(
+    (total, producto) => total + producto.stock,
+    0,
+  );
+
+  const cantidadCriticos = productos.filter(esCritico).length;
+
   function eliminar(producto) {
     const confirmar = window.confirm(
       `¿Eliminar ${producto.nombre}?`,
@@ -161,66 +211,89 @@ export function ListaProductos({ criticos = false }) {
 
   return (
     <>
-      <div className="sv-resumen">
-        <article>
-          <strong>{productos.length}</strong>
-          Productos
-        </article>
+      <div className="row g-3 my-4">
+        <div className="col-12 col-md-4">
+          <article className="card sv-card h-100">
+            <div className="card-body">
+              <strong className="d-block fs-2 text-info">
+                {productos.length}
+              </strong>
 
-        <article>
-          <strong>
-            {productos.reduce(
-              (total, producto) => total + producto.stock,
-              0,
-            )}
-          </strong>
-          Unidades en stock
-        </article>
+              <span>Productos</span>
+            </div>
+          </article>
+        </div>
 
-        <article>
-          <strong>
-            {productos.filter(esCritico).length}
-          </strong>
-          Stock crítico
-        </article>
+        <div className="col-12 col-md-4">
+          <article className="card sv-card h-100">
+            <div className="card-body">
+              <strong className="d-block fs-2 text-info">
+                {stockTotal}
+              </strong>
+
+              <span>Unidades en stock</span>
+            </div>
+          </article>
+        </div>
+
+        <div className="col-12 col-md-4">
+          <article className="card sv-card h-100">
+            <div className="card-body">
+              <strong className="d-block fs-2 text-warning">
+                {cantidadCriticos}
+              </strong>
+
+              <span>Stock crítico</span>
+            </div>
+          </article>
+        </div>
       </div>
 
-      <div className="sv-toolbar">
-        <h2>
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 my-4">
+        <h2 className="h4 mb-0">
           {criticos
             ? "Productos con stock crítico"
             : "Administrar productos"}
         </h2>
 
         <Link
-          className="boton"
+          className="btn btn-sonido"
           to="/vendedor/productos/nuevo"
         >
           Crear producto
         </Link>
       </div>
 
-      <label>
-        Buscar producto
+      <div className="mb-3">
+        <label
+          htmlFor="buscar-producto-vendedor"
+          className="form-label"
+        >
+          Buscar producto
+        </label>
+
         <input
+          id="buscar-producto-vendedor"
+          className="form-control"
           type="search"
           value={busqueda}
+          placeholder="Nombre o código"
           onChange={(evento) =>
             setBusqueda(evento.target.value)
           }
         />
-      </label>
+      </div>
 
-      <div className="sv-tabla">
-        <table>
+      <div className="table-responsive my-4">
+        <table className="table table-dark table-striped align-middle">
           <thead>
             <tr>
-              <th>Producto</th>
-              <th>Categoría</th>
-              <th>Precio base</th>
-              <th>Stock / mínimo</th>
-              <th>Estado</th>
-              <th>Acciones</th>
+              <th scope="col">Producto</th>
+              <th scope="col">Categoría</th>
+              <th scope="col">Precio base</th>
+              <th scope="col">Stock / mínimo</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acciones</th>
             </tr>
           </thead>
 
@@ -228,8 +301,11 @@ export function ListaProductos({ criticos = false }) {
             {lista.map((producto) => (
               <tr key={producto.id}>
                 <td>
-                  {producto.nombre}
-                  <small>{producto.codigo}</small>
+                  <strong>{producto.nombre}</strong>
+
+                  <small className="d-block text-body-secondary">
+                    {producto.codigo}
+                  </small>
                 </td>
 
                 <td>
@@ -241,32 +317,49 @@ export function ListaProductos({ criticos = false }) {
                   }
                 </td>
 
-                <td>{moneda(producto.precio)}</td>
+                <td className="text-nowrap">
+                  {moneda(producto.precio)}
+                </td>
 
-                <td>
+                <td className="text-nowrap">
                   {producto.stock} / {producto.stockCritico}
                 </td>
 
                 <td>
-                  {producto.stock === 0
-                    ? "Sin stock"
-                    : esCritico(producto)
-                      ? "Stock crítico"
-                      : "Disponible"}
+                  <span
+                    className={`badge ${
+                      producto.stock === 0
+                        ? "text-bg-danger"
+                        : esCritico(producto)
+                          ? "text-bg-warning"
+                          : "text-bg-success"
+                    }`}
+                  >
+                    {producto.stock === 0
+                      ? "Sin stock"
+                      : esCritico(producto)
+                        ? "Stock crítico"
+                        : "Disponible"}
+                  </span>
                 </td>
 
                 <td>
-                  <Link
-                    to={`/vendedor/productos/${producto.id}/editar`}
-                  >
-                    Editar / stock
-                  </Link>
+                  <div className="d-flex flex-wrap gap-2">
+                    <Link
+                      className="btn btn-sm btn-outline-info"
+                      to={`/vendedor/productos/${producto.id}/editar`}
+                    >
+                      Editar / stock
+                    </Link>
 
-                  <button
-                    onClick={() => eliminar(producto)}
-                  >
-                    Eliminar
-                  </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => eliminar(producto)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -275,9 +368,9 @@ export function ListaProductos({ criticos = false }) {
       </div>
 
       {lista.length === 0 && (
-        <p className="sv-vacio">
+        <div className="alert alert-info">
           No hay productos para mostrar.
-        </p>
+        </div>
       )}
     </>
   );
@@ -319,10 +412,13 @@ export function FormularioProducto() {
 
   if (id && !existente) {
     return (
-      <p>
+      <div className="alert alert-warning">
         Producto no encontrado.{" "}
-        <Link to="/vendedor">Volver</Link>
-      </p>
+
+        <Link to="/vendedor" className="alert-link">
+          Volver al panel
+        </Link>
+      </div>
     );
   }
 
@@ -377,59 +473,95 @@ export function FormularioProducto() {
   }
 
   const camposNumericos = [
-    { nombre: "precio", etiqueta: "Precio base ($)" },
-    { nombre: "stock", etiqueta: "Stock disponible" },
+    {
+      nombre: "precio",
+      etiqueta: "Precio base ($)",
+    },
+    {
+      nombre: "stock",
+      etiqueta: "Stock disponible",
+    },
     {
       nombre: "stockCritico",
       etiqueta: "Umbral de stock crítico",
     },
-    { nombre: "descuento", etiqueta: "Descuento (%)" },
+    {
+      nombre: "descuento",
+      etiqueta: "Descuento (%)",
+    },
   ];
 
   return (
     <>
-      <h2>
+      <h2 className="h4 mb-4">
         {existente
           ? "Editar producto y stock"
           : "Crear producto"}
       </h2>
 
-      <form className="sv-form" onSubmit={guardar}>
-        <label>
-          Código
+      <form className="row g-3 my-3" onSubmit={guardar}>
+        <div className="col-12 col-md-6">
+          <label htmlFor="codigo-producto" className="form-label">
+            Código
+          </label>
+
           <input
+            id="codigo-producto"
+            className="form-control"
             name="codigo"
             value={form.codigo}
             onChange={cambiar}
             minLength={3}
             required
           />
-        </label>
+        </div>
 
-        <label>
-          Nombre
+        <div className="col-12 col-md-6">
+          <label htmlFor="nombre-producto" className="form-label">
+            Nombre
+          </label>
+
           <input
+            id="nombre-producto"
+            className="form-control"
             name="nombre"
             value={form.nombre}
             onChange={cambiar}
             maxLength={100}
             required
           />
-        </label>
+        </div>
 
-        <label>
-          Descripción
+        <div className="col-12">
+          <label
+            htmlFor="descripcion-producto"
+            className="form-label"
+          >
+            Descripción
+          </label>
+
           <textarea
+            id="descripcion-producto"
+            className="form-control"
             name="descripcion"
+            rows={4}
             value={form.descripcion}
             onChange={cambiar}
             maxLength={500}
           />
-        </label>
+        </div>
 
-        <label>
-          Categoría
+        <div className="col-12 col-md-6">
+          <label
+            htmlFor="categoria-producto"
+            className="form-label"
+          >
+            Categoría
+          </label>
+
           <select
+            id="categoria-producto"
+            className="form-select"
             name="categoriaId"
             value={form.categoriaId}
             onChange={cambiar}
@@ -446,13 +578,39 @@ export function FormularioProducto() {
               </option>
             ))}
           </select>
-        </label>
+        </div>
+
+        <div className="col-12 col-md-6">
+          <label htmlFor="imagen-producto" className="form-label">
+            Imagen (ruta /img/... o URL HTTPS)
+          </label>
+
+          <input
+            id="imagen-producto"
+            className="form-control"
+            name="imagen"
+            value={form.imagen}
+            onChange={cambiar}
+            pattern="(/[^ ].*|https://[^ ]+)"
+            placeholder="/img/guitarra-schecter.jpg"
+          />
+        </div>
 
         {camposNumericos.map((campo) => (
-          <label key={campo.nombre}>
-            {campo.etiqueta}
+          <div
+            key={campo.nombre}
+            className="col-12 col-md-6"
+          >
+            <label
+              htmlFor={`producto-${campo.nombre}`}
+              className="form-label"
+            >
+              {campo.etiqueta}
+            </label>
 
             <input
+              id={`producto-${campo.nombre}`}
+              className="form-control"
               name={campo.nombre}
               type="number"
               min="0"
@@ -470,34 +628,41 @@ export function FormularioProducto() {
               onChange={cambiar}
               required
             />
-          </label>
+          </div>
         ))}
 
-        <label>
-          Imagen (ruta /img/... o URL HTTPS)
-          <input
-            name="imagen"
-            value={form.imagen}
-            onChange={cambiar}
-            pattern="(/[^ ].*|https://[^ ]+)"
-            placeholder="/img/guitarra-schecter.jpg"
-          />
-        </label>
-
-        <p role="alert">{error}</p>
-
-        <button
-          className="boton"
-          disabled={categorias.length === 0}
-        >
-          Guardar producto
-        </button>
-
-        <Link to="/vendedor">Cancelar</Link>
+        {error && (
+          <div className="col-12">
+            <div className="alert alert-danger" role="alert">
+              {error}
+            </div>
+          </div>
+        )}
 
         {categorias.length === 0 && (
-          <p>Crea una categoría primero.</p>
+          <div className="col-12">
+            <div className="alert alert-warning">
+              Crea una categoría primero.
+            </div>
+          </div>
         )}
+
+        <div className="col-12 d-flex flex-wrap gap-2">
+          <button
+            type="submit"
+            className="btn btn-sonido"
+            disabled={categorias.length === 0}
+          >
+            Guardar producto
+          </button>
+
+          <Link
+            to="/vendedor"
+            className="btn btn-outline-secondary"
+          >
+            Cancelar
+          </Link>
+        </div>
       </form>
     </>
   );
@@ -603,8 +768,14 @@ export function AdminCategorias() {
   }
 
   const campos = [
-    { nombre: "nombre", etiqueta: "Nombre" },
-    { nombre: "descripcion", etiqueta: "Descripción" },
+    {
+      nombre: "nombre",
+      etiqueta: "Nombre",
+    },
+    {
+      nombre: "descripcion",
+      etiqueta: "Descripción",
+    },
     {
       nombre: "imagen",
       etiqueta: "Imagen (ruta o URL HTTPS)",
@@ -613,14 +784,26 @@ export function AdminCategorias() {
 
   return (
     <>
-      <h2>Administrar categorías</h2>
+      <h2 className="h4 mb-4">
+        Administrar categorías
+      </h2>
 
-      <form className="sv-form" onSubmit={guardar}>
+      <form className="row g-3 my-3" onSubmit={guardar}>
         {campos.map((campo) => (
-          <label key={campo.nombre}>
-            {campo.etiqueta}
+          <div
+            key={campo.nombre}
+            className="col-12 col-md-6"
+          >
+            <label
+              htmlFor={`categoria-${campo.nombre}`}
+              className="form-label"
+            >
+              {campo.etiqueta}
+            </label>
 
             <input
+              id={`categoria-${campo.nombre}`}
+              className="form-control"
               value={form[campo.nombre]}
               maxLength={
                 campo.nombre === "nombre" ? 100 : 500
@@ -638,34 +821,41 @@ export function AdminCategorias() {
                 })
               }
             />
-          </label>
+          </div>
         ))}
 
-        <button className="boton">
-          {form.id
-            ? "Guardar cambios"
-            : "Crear categoría"}
-        </button>
-
-        {form.id && (
-          <button
-            type="button"
-            onClick={limpiarFormulario}
-          >
-            Cancelar edición
+        <div className="col-12 d-flex flex-wrap gap-2">
+          <button type="submit" className="btn btn-sonido">
+            {form.id
+              ? "Guardar cambios"
+              : "Crear categoría"}
           </button>
-        )}
+
+          {form.id && (
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={limpiarFormulario}
+            >
+              Cancelar edición
+            </button>
+          )}
+        </div>
       </form>
 
-      <p role="alert">{error}</p>
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
 
-      <div className="sv-tabla">
-        <table>
+      <div className="table-responsive my-4">
+        <table className="table table-dark table-striped align-middle">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th>Acciones</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Acciones</th>
             </tr>
           </thead>
 
@@ -673,29 +863,42 @@ export function AdminCategorias() {
             {categorias.map((categoria) => (
               <tr key={categoria.id}>
                 <td>{categoria.nombre}</td>
+
                 <td>{categoria.descripcion}</td>
 
                 <td>
-                  <button
-                    onClick={() => {
-                      setForm(categoria);
-                      setError("");
-                    }}
-                  >
-                    Editar
-                  </button>
+                  <div className="d-flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-info"
+                      onClick={() => {
+                        setForm(categoria);
+                        setError("");
+                      }}
+                    >
+                      Editar
+                    </button>
 
-                  <button
-                    onClick={() => eliminar(categoria)}
-                  >
-                    Eliminar
-                  </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => eliminar(categoria)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {categorias.length === 0 && (
+        <div className="alert alert-info">
+          No hay categorías registradas.
+        </div>
+      )}
     </>
   );
 }

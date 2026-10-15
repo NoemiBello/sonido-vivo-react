@@ -46,7 +46,7 @@ function Navegacion({ carrito, setCarrito }) {
             <NavLink className="nav-link" to="/categorias">Categorías</NavLink>
             <NavLink className="nav-link" to="/ofertas">Ofertas</NavLink>
             <NavLink className="nav-link" to="/servicios">Servicios</NavLink>
-            <NavLink className="nav-link" to="/login">Vendedor</NavLink>
+            <NavLink className="nav-link" to="/login">Perfil</NavLink>
           </Nav>
         </Navbar.Collapse>
 

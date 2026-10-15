@@ -113,7 +113,7 @@ function Header({ carrito, setCarrito }) {
                 }
                 onClick={() => setMenuAbierto(false)}
               >
-                Vendedor
+                Perfil
               </NavLink>
             </li>
           </ul>

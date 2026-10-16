@@ -32,12 +32,10 @@ it("muestra el producto agregado al carrito", () => {
 
   const setCarrito = vi.fn();
 
+
   render(
     <MemoryRouter>
-      <Carrito
-        carrito={[producto]}
-        setCarrito={setCarrito}
-      />
+      <Carrito carrito={[producto]} setCarrito={setCarrito} />
     </MemoryRouter>
   );
 
@@ -61,10 +59,7 @@ it("permite eliminar un producto del carrito", async () => {
 
   render(
     <MemoryRouter>
-      <Carrito
-        carrito={[producto]}
-        setCarrito={setCarrito}
-      />
+      <Carrito carrito={[producto]} setCarrito={setCarrito} />
     </MemoryRouter>
   );
 
@@ -90,10 +85,7 @@ it("permite vaciar todos los productos del carrito", async () => {
 
   render(
     <MemoryRouter>
-      <Carrito
-        carrito={[producto]}
-        setCarrito={setCarrito}
-      />
+      <Carrito carrito={[producto]} setCarrito={setCarrito} />
     </MemoryRouter>
   );
 
@@ -103,6 +95,4 @@ it("permite vaciar todos los productos del carrito", async () => {
 
   expect(setCarrito).toHaveBeenCalledWith([]);
 });
-
-
 });

@@ -8,10 +8,31 @@ function Checkout({ carrito, setCarrito }) {
 
     function confirmarCompra(e) {
         e.preventDefault();
-        setCarrito([]);
-        navigate("/compra-exitosa");
-    }
 
+        if (carrito.length === 0) {
+            alert("Debes agregar productos al carrito antes de comprar.");
+            return;
+        }
+
+        const datos = new FormData(e.currentTarget);
+
+        const pedido = {
+            nombre: datos.get("nombre"),
+            correo: datos.get("correo"),
+            tipoEntrega: tipoEntrega,
+            direccion: tipoEntrega === "despacho"
+                ? datos.get("direccion")
+                : "",
+            productos: [...carrito],
+            total: total
+        };
+
+        navigate("/compra-exitosa", {
+            state: { pedido }
+        });
+
+        setCarrito([]);
+    }
     const total = carrito.reduce(
         (acumulado, producto) =>
             acumulado + producto.precio * producto.cantidad,
@@ -124,6 +145,13 @@ function Checkout({ carrito, setCarrito }) {
                                 className="btn boton w-100 mt-3"
                             >
                                 Confirmar compra
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-outline-danger w-100 mt-3"
+                                onClick={() => navigate("/compra-fallida")}
+                            >
+                                Simular compra fallida
                             </button>
                         </form>
                     </div>

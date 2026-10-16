@@ -18,17 +18,11 @@ describe("Pruebas del selector de cantidad", () => {
     const user = userEvent.setup();
 
     render(
-      <SelectorCantidad
-        producto={producto}
-        carrito={[producto]}
-        setCarrito={setCarrito}
-      />
+      <SelectorCantidad producto={producto} carrito={[producto]} setCarrito={setCarrito}/>
     );
 
     await user.click(
-      screen.getByRole("button", {
-        name: "Aumentar cantidad"
-      })
+      screen.getByRole("button", {name: "Aumentar cantidad"})
     );
 
     expect(setCarrito).toHaveBeenCalledWith([
@@ -52,17 +46,11 @@ it("permite disminuir la cantidad de un producto", async () => {
   const user = userEvent.setup();
 
   render(
-    <SelectorCantidad
-      producto={producto}
-      carrito={[producto]}
-      setCarrito={setCarrito}
-    />
+    <SelectorCantidad producto={producto} carrito={[producto]} setCarrito={setCarrito}/>
   );
 
   await user.click(
-    screen.getByRole("button", {
-      name: "Disminuir cantidad"
-    })
+    screen.getByRole("button", {name: "Disminuir cantidad"})
   );
 
   expect(setCarrito).toHaveBeenCalledWith([
@@ -87,15 +75,10 @@ it("no permite aumentar la cantidad cuando alcanza el stock", async () => {
   const user = userEvent.setup();
 
   render(
-    <SelectorCantidad
-      producto={producto}
-      carrito={[producto]}
-      setCarrito={setCarrito}
-    />
+    <SelectorCantidad producto={producto} carrito={[producto]} setCarrito={setCarrito}/>
   );
 
-  const botonAumentar = screen.getByRole("button", {
-    name: "Aumentar cantidad"
+  const botonAumentar = screen.getByRole("button", {name: "Aumentar cantidad"
   });
 
   expect(botonAumentar).toBeDisabled();
@@ -119,11 +102,7 @@ it("restablece la cantidad cuando se escribe un valor inválido", async () => {
   const user = userEvent.setup();
 
   render(
-    <SelectorCantidad
-      producto={producto}
-      carrito={[producto]}
-      setCarrito={setCarrito}
-    />
+    <SelectorCantidad producto={producto} carrito={[producto]} setCarrito={setCarrito} />
   );
 
   const campoCantidad = screen.getByRole("spinbutton", {
@@ -151,15 +130,10 @@ it("no permite escribir una cantidad mayor al stock", async () => {
   const user = userEvent.setup();
 
   render(
-    <SelectorCantidad
-      producto={producto}
-      carrito={[producto]}
-      setCarrito={setCarrito}
-    />
+     <SelectorCantidad producto={producto} carrito={[producto]} setCarrito={setCarrito} />
   );
 
-  const campoCantidad = screen.getByRole("spinbutton", {
-    name: "Cantidad de Guitarra eléctrica"
+  const campoCantidad = screen.getByRole("spinbutton", {name: "Cantidad de Guitarra eléctrica"
   });
 
   await user.clear(campoCantidad);
@@ -197,16 +171,10 @@ it("rechaza una cantidad decimal y recupera la cantidad anterior", async () => {
   const user = userEvent.setup();
 
   render(
-    <SelectorCantidad
-      producto={producto}
-      carrito={[producto]}
-      setCarrito={setCarrito}
-    />
+    <SelectorCantidad producto={producto} carrito={[producto]} setCarrito={setCarrito}/>
   );
 
-  const campoCantidad = screen.getByRole("spinbutton", {
-    name: "Cantidad de Guitarra eléctrica"
-  });
+  const campoCantidad = screen.getByRole("spinbutton", { name: "Cantidad de Guitarra eléctrica" });
 
   await user.clear(campoCantidad);
   await user.type(campoCantidad, "2.5");

@@ -1,13 +1,14 @@
+
 export const categoriasIniciales = [
   {
     id: 1,
-    nombre: "Guitarras eléctricas",
-    descripcion: "Encuentra tu próximo sonido.",
+    nombre: "Guitarras electricas",
+    descripcion: "Encuentra tu proximo sonido.",
     imagen: "/img/guitarra-schecter.jpg",
   },
   {
     id: 2,
-    nombre: "Micrófonos",
+    nombre: "Microfonos",
     descripcion: "Dale protagonismo a tu voz.",
     imagen: "/img/microfono.jpg",
   },
@@ -17,13 +18,55 @@ export const categoriasIniciales = [
     descripcion: "Potencia para practicar y tocar.",
     imagen: "/img/amplificador-behringe.jpg",
   },
+  {
+    id: 4,
+    nombre: "Guitarras acusticas",
+    descripcion: "Sonidos naturales para cada cancion.",
+    imagen: "/img/guitarra-acustica.jpg",
+  },
+  {
+    id: 5,
+    nombre: "Bajos electricos",
+    descripcion: "El ritmo y la profundidad de tu musica.",
+    imagen: "/img/bajo-electrico.jpg",
+  },
+  {
+    id: 6,
+    nombre: "Baterias",
+    descripcion: "Marca el ritmo de tu musica.",
+    imagen: "/img/bateria.jpg",
+  },
+  {
+    id: 7,
+    nombre: "Teclados y pianos",
+    descripcion: "Explora nuevas melodias.",
+    imagen: "/img/teclado.jpg",
+  },
+  {
+    id: 8,
+    nombre: "Pedales de efectos",
+    descripcion: "Personaliza el sonido de tu instrumento.",
+    imagen: "/img/pedal.jpg",
+  },
+  {
+    id: 9,
+    nombre: "Accesorios",
+    descripcion: "Complementos para tus instrumentos.",
+    imagen: "/img/cuerdas.jpg",
+  },
+  {
+    id: 10,
+    nombre: "Estudio y grabacion",
+    descripcion: "Lleva tus grabaciones a otro nivel.",
+    imagen: "/img/interfaz.jpg",
+  },
 ];
 
 export const productosIniciales = [
   {
     id: 1,
     codigo: "GE001",
-    nombre: "Guitarra eléctrica SGR by Schecter C-1 Gloss Black",
+    nombre: "Guitarra electrica SGR by Schecter C-1 Gloss Black",
     categoriaId: 1,
     precio: 279900,
     stock: 5,
@@ -31,12 +74,12 @@ export const productosIniciales = [
     descuento: 0,
     imagen: "/img/guitarra-schecter.jpg",
     descripcion:
-      "Guitarra eléctrica de seis cuerdas para práctica, ensayo y presentaciones.",
+      "Guitarra electrica de seis cuerdas para practica, ensayo y presentaciones.",
   },
   {
     id: 2,
     codigo: "MI001",
-    nombre: "Micrófono dinámico vocal Shure SM58",
+    nombre: "Microfono dinamico vocal Shure SM58",
     categoriaId: 2,
     precio: 129900,
     stock: 8,
@@ -44,7 +87,7 @@ export const productosIniciales = [
     descuento: 10,
     imagen: "/img/microfono.jpg",
     descripcion:
-      "Micrófono dinámico cardioide para voces en vivo, ensayos y grabaciones.",
+      "Microfono dinamico cardioide para voces en vivo, ensayos y grabaciones.",
   },
   {
     id: 3,
@@ -56,6 +99,97 @@ export const productosIniciales = [
     stockCritico: 2,
     descuento: 0,
     imagen: "/img/amplificador-behringe.jpg",
-    descripcion: "Amplificador para guitarra de 20 W con reverberación.",
+    descripcion: "Amplificador para guitarra de 20 W con reverberacion.",
+  },
+  {
+    id: 4,
+    codigo: "GA001",
+    nombre: "Guitarra Acustica Yamaha F310",
+    categoriaId: 4,
+    precio: 129990,
+    stock: 8,
+    stockCritico: 2,
+    descuento: 0,
+    imagen: "/img/guitarra-acustica.jpg",
+    descripcion:
+      "Guitarra acustica con tapa de abeto, aros y fondo de meranti. Ideal para principiantes.",
+  },
+  {
+    id: 5,
+    codigo: "BA001",
+    nombre: "Bajo Electrico Squier Affinity PJ",
+    categoriaId: 5,
+    precio: 299990,
+    stock: 5,
+    stockCritico: 2,
+    descuento: 0,
+    imagen: "/img/bajo-electrico.jpg",
+    descripcion:
+      "Bajo electrico de cuatro cuerdas con pickup PJ, cuerpo de alamo y mastil de arce.",
+  },
+  {
+    id: 6,
+    codigo: "BT001",
+    nombre: "Bateria Acustica Pearl Roadshow",
+    categoriaId: 6,
+    precio: 599990,
+    stock: 2,
+    stockCritico: 2,
+    descuento: 0,
+    imagen: "/img/bateria.jpg",
+    descripcion:
+      "Bateria acustica de cinco piezas. Incluye stands, platillos y pedal de bombo.",
+  },
+  {
+    id: 7,
+    codigo: "TC001",
+    nombre: "Teclado Digital Yamaha PSR-E373",
+    categoriaId: 7,
+    precio: 249990,
+    stock: 4,
+    stockCritico: 2,
+    descuento: 0,
+    imagen: "/img/teclado.jpg",
+    descripcion:
+      "Teclado digital de 61 teclas sensibles al tacto y 622 voces.",
+  },
+  {
+    id: 8,
+    codigo: "PE001",
+    nombre: "Pedal Distorsion Boss DS-1",
+    categoriaId: 8,
+    precio: 79990,
+    stock: 7,
+    stockCritico: 2,
+    descuento: 0,
+    imagen: "/img/pedal.jpg",
+    descripcion:
+      "Clasico pedal de distorsion para guitarra electrica con tres controles.",
+  },
+  {
+    id: 9,
+    codigo: "AC001",
+    nombre: "Cuerdas Ernie Ball Super Slinky 09-42",
+    categoriaId: 9,
+    precio: 8990,
+    stock: 25,
+    stockCritico: 2,
+    descuento: 0,
+    imagen: "/img/cuerdas.jpg",
+    descripcion:
+      "Juego de seis cuerdas para guitarra electrica de calibre ligero.",
+  },
+  {
+    id: 10,
+    codigo: "ES001",
+    nombre: "Interfaz de Audio Focusrite Scarlett Solo",
+    categoriaId: 10,
+    precio: 149990,
+    stock: 4,
+    stockCritico: 2,
+    descuento: 0,
+    imagen: "/img/interfaz.jpg",
+    descripcion:
+      "Interfaz de audio USB con entrada XLR e instrumento, dos salidas y resolucion de 24bit/192kHz.",
   },
 ];

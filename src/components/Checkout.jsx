@@ -1,174 +1,261 @@
-
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  guardarPedidos,
+  leerPedidos,
+  leerSesion,
+} from "../utils/storage";
 
-function Checkout({ carrito, setCarrito }) {
-    const navigate = useNavigate();
-    const [tipoEntrega, setTipoEntrega] = useState("");
+const servicioPedidosReal = {
+  guardarPedidos,
+  leerPedidos,
+  leerSesion,
+};
 
-    function confirmarCompra(e) {
-        e.preventDefault();
-        setCarrito([]);
-        navigate("/compra-exitosa");
-    }
+function Checkout({
+  carrito,
+  setCarrito,
+  servicioPedidos = servicioPedidosReal,
+}) {
+  const navigate = useNavigate();
+  const sesion =
+    servicioPedidos.leerSesion();
 
-    const total = carrito.reduce(
-        (acumulado, producto) =>
-            acumulado + producto.precio * producto.cantidad,
-        0
-    );
+  const [tipoEntrega, setTipoEntrega] =
+    useState("");
 
-    return (
-        <main className="sv-pagina container py-4">
-            <h1 className="mb-4">Finalizar compra</h1>
+  const [nombre, setNombre] = useState(
+    sesion
+      ? `${sesion.nombre} ${sesion.apellido}`.trim()
+      : "",
+  );
 
-            <div className="row g-4">
-                {/* Formulario del comprador */}
-                <section className="col-12 col-lg-7">
-                    <div className="card p-4 tarjeta-checkout h-100">
-                        <h2 className="h4 mb-4">
-                            Datos del comprador
-                        </h2>
+  const [correo, setCorreo] = useState(
+    sesion?.correo || "",
+  );
 
-                        <form onSubmit={confirmarCompra}>
-                            <div className="mb-3">
-                                <label
-                                    htmlFor="nombre"
-                                    className="form-label"
-                                >
-                                    Nombre completo
-                                </label>
+  const total = carrito.reduce(
+    (acumulado, producto) =>
+      acumulado +
+      producto.precio *
+        producto.cantidad,
+    0,
+  );
 
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    id="nombre"
-                                    name="nombre"
-                                    minLength={3}
-                                    maxLength={80}
-                                    pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+"
-                                    title="Ingresa tu nombre usando solo letras y espacios."
-                                    required
-                                />
-                            </div>
+  function confirmarCompra(evento) {
+    evento.preventDefault();
 
-                            <div className="mb-3">
-                                <label
-                                    htmlFor="correo"
-                                    className="form-label"
-                                >
-                                    Correo electrónico
-                                </label>
+    const pedidos =
+      servicioPedidos.leerPedidos();
 
-                                <input
-                                    type="email"
-                                    className="form-control"
-                                    id="correo"
-                                    name="correo"
-                                    required
-                                />
-                            </div>
+    const nuevoPedido = {
+      id: Date.now(),
+      usuarioId: sesion?.id ?? null,
+      fecha: new Date()
+        .toISOString()
+        .slice(0, 10),
+      estado: "En preparación",
+      tipoEntrega:
+        tipoEntrega === "despacho"
+          ? "Despacho"
+          : "Retiro en tienda",
+      productos: carrito.map(
+        (producto) => ({
+          productoId: producto.id,
+          nombre: producto.nombre,
+          cantidad: producto.cantidad,
+          precio: producto.precio,
+        }),
+      ),
+      total,
+    };
 
-                            <div className="mb-3">
-                                <label
-                                    htmlFor="tipoEntrega"
-                                    className="form-label"
-                                >
-                                    Tipo de entrega
-                                </label>
+    servicioPedidos.guardarPedidos([
+      ...pedidos,
+      nuevoPedido,
+    ]);
 
-                                <select
-                                    className="form-select"
-                                    id="tipoEntrega"
-                                    name="tipoEntrega"
-                                    value={tipoEntrega}
-                                    onChange={(e) =>
-                                        setTipoEntrega(e.target.value)
-                                    }
-                                    required
-                                >
-                                    <option value="">
-                                        Selecciona una opción
-                                    </option>
-                                    <option value="despacho">
-                                        Despacho a domicilio
-                                    </option>
-                                    <option value="retiro">
-                                        Retiro en tienda
-                                    </option>
-                                </select>
-                            </div>
+    setCarrito([]);
+    navigate("/compra-exitosa");
+  }
 
-                            {tipoEntrega === "despacho" && (
-                                <div className="mb-3">
-                                    <label
-                                        htmlFor="direccion"
-                                        className="form-label"
-                                    >
-                                        Dirección de entrega
-                                    </label>
+  return (
+    <main className="container py-4">
+      <h1 className="mb-4">
+        Finalizar compra
+      </h1>
 
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="direccion"
-                                        name="direccion"
-                                        minLength={8}
-                                        required
-                                    />
-                                </div>
-                            )}
+      <div className="row g-4">
+        <section className="col-12 col-lg-7">
+          <div className="card p-4 h-100">
+            <h2 className="h4 mb-4">
+              Datos del comprador
+            </h2>
 
-                            <button
-                                type="submit"
-                                className="btn boton w-100 mt-3"
-                            >
-                                Confirmar compra
-                            </button>
-                        </form>
-                    </div>
-                </section>
+            <form
+              onSubmit={confirmarCompra}
+            >
+              <div className="mb-3">
+                <label
+                  htmlFor="nombre"
+                  className="form-label"
+                >
+                  Nombre completo
+                </label>
 
-                {/* Resumen del pedido */}
-                <aside className="col-12 col-lg-5">
-                    <div className="card p-4 tarjeta-checkout">
-                        <h2 className="h4 mb-4">
-                            Resumen del pedido
-                        </h2>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="nombre"
+                  name="nombre"
+                  minLength={3}
+                  maxLength={80}
+                  value={nombre}
+                  onChange={(evento) =>
+                    setNombre(
+                      evento.target.value,
+                    )
+                  }
+                  required
+                />
+              </div>
 
-                        {carrito.map((producto) => (
-                            <div
-                                key={producto.id}
-                                className="d-flex justify-content-between align-items-start gap-3 mb-3"
-                            >
-                                <span>
-                                    {producto.nombre} × {producto.cantidad}
-                                </span>
+              <div className="mb-3">
+                <label
+                  htmlFor="correo"
+                  className="form-label"
+                >
+                  Correo electrónico
+                </label>
 
-                                <strong className="text-nowrap">
-                                    $
-                                    {(
-                                        producto.precio *
-                                        producto.cantidad
-                                    ).toLocaleString("es-CL")}
-                                </strong>
-                            </div>
-                        ))}
+                <input
+                  type="email"
+                  className="form-control"
+                  id="correo"
+                  name="correo"
+                  value={correo}
+                  onChange={(evento) =>
+                    setCorreo(
+                      evento.target.value,
+                    )
+                  }
+                  required
+                />
+              </div>
 
-                        <hr />
+              <div className="mb-3">
+                <label
+                  htmlFor="tipoEntrega"
+                  className="form-label"
+                >
+                  Tipo de entrega
+                </label>
 
-                        <div className="d-flex justify-content-between gap-3">
-                            <h3 className="h5 mb-0">Total</h3>
+                <select
+                  className="form-select"
+                  id="tipoEntrega"
+                  name="tipoEntrega"
+                  value={tipoEntrega}
+                  onChange={(evento) =>
+                    setTipoEntrega(
+                      evento.target.value,
+                    )
+                  }
+                  required
+                >
+                  <option value="">
+                    Selecciona una opción
+                  </option>
+                  <option value="despacho">
+                    Despacho a domicilio
+                  </option>
+                  <option value="retiro">
+                    Retiro en tienda
+                  </option>
+                </select>
+              </div>
 
-                            <strong className="precio">
-                                ${total.toLocaleString("es-CL")}
-                            </strong>
-                        </div>
-                    </div>
-                </aside>
+              {tipoEntrega ===
+                "despacho" && (
+                <div className="mb-3">
+                  <label
+                    htmlFor="direccion"
+                    className="form-label"
+                  >
+                    Dirección de entrega
+                  </label>
+
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="direccion"
+                    name="direccion"
+                    minLength={8}
+                    required
+                  />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="btn btn-info w-100 mt-3"
+                disabled={
+                  carrito.length === 0
+                }
+              >
+                Confirmar compra
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <aside className="col-12 col-lg-5">
+          <div className="card p-4">
+            <h2 className="h4 mb-4">
+              Resumen del pedido
+            </h2>
+
+            {carrito.map((producto) => (
+              <div
+                key={producto.id}
+                className="d-flex justify-content-between align-items-start gap-3 mb-3"
+              >
+                <span>
+                  {producto.nombre} ×{" "}
+                  {producto.cantidad}
+                </span>
+
+                <strong className="text-nowrap">
+                  $
+                  {(
+                    producto.precio *
+                    producto.cantidad
+                  ).toLocaleString(
+                    "es-CL",
+                  )}
+                </strong>
+              </div>
+            ))}
+
+            <hr />
+
+            <div className="d-flex justify-content-between gap-3">
+              <h3 className="h5 mb-0">
+                Total
+              </h3>
+
+              <strong>
+                $
+                {total.toLocaleString(
+                  "es-CL",
+                )}
+              </strong>
             </div>
-        </main>
-    );
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
 }
 
 export default Checkout;

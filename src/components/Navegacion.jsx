@@ -1,58 +1,95 @@
+import {
+  Badge,
+  Button,
+  Container,
+  Nav,
+  Navbar,
+} from "react-bootstrap";
+import {
+  Link,
+  NavLink,
+} from "react-router-dom";
 
-import { Container, Nav, Navbar } from "react-bootstrap";
-import { NavLink } from "react-router-dom";
-import Header from "./Header";
+const enlaces = [
+  { ruta: "/", texto: "Inicio", fin: true },
+  { ruta: "/catalogo", texto: "Catálogo" },
+  { ruta: "/categorias", texto: "Categorías" },
+  { ruta: "/ofertas", texto: "Ofertas" },
+  { ruta: "/servicios", texto: "Servicios" },
+  { ruta: "/nosotros", texto: "Nosotros" },
+  { ruta: "/blog", texto: "Blog" },
+  { ruta: "/contacto", texto: "Contacto" },
+  { ruta: "/login", texto: "Ingresar" },
+];
 
-function Navegacion({ carrito, setCarrito }) {
+export default function Navegacion({
+  cantidadProductos,
+  carritoAbierto,
+  onAlternarCarrito,
+}) {
   return (
     <Navbar
       expand="md"
-      variant="dark"
-      style={{ backgroundColor: "#0d212d" }}
+      bg="dark"
+      data-bs-theme="dark"
     >
-      <Container fluid className="px-3 px-lg-5">
-
+      <Container fluid>
         <Navbar.Brand
-          as={NavLink}
+          as={Link}
           to="/"
-          className="marca me-0 me-md-3"
-          style={{ minWidth: 0, flexShrink: 1 }}
+          className="d-flex align-items-center gap-2"
         >
           <img
             src="/img/logo.png"
             alt="Sonido Vivo"
-            style={{ maxWidth: "100%", height: "auto" }}
+            width="48"
+            height="48"
+            className="object-fit-contain"
           />
+          <span>Sonido Vivo</span>
         </Navbar.Brand>
 
-        <div
-          className="d-flex align-items-center ms-auto order-md-3"
-          style={{ flexShrink: 0 }}
-        >
-          <Navbar.Toggle
-            aria-controls="menu-principal"
-            className="me-2"
-          />
-          <Header carrito={carrito} setCarrito={setCarrito} />
-        </div>
+        <Navbar.Toggle
+          aria-controls="menu-principal"
+        />
 
-        <Navbar.Collapse
-          id="menu-principal"
-          className="order-md-2"
-        >
-          <Nav className="ms-auto">
-            <NavLink className="nav-link" to="/" end>Inicio</NavLink>
-            <NavLink className="nav-link" to="/catalogo">Catálogo</NavLink>
-            <NavLink className="nav-link" to="/categorias">Categorías</NavLink>
-            <NavLink className="nav-link" to="/ofertas">Ofertas</NavLink>
-            <NavLink className="nav-link" to="/servicios">Servicios</NavLink>
-            <NavLink className="nav-link" to="/login">Perfil</NavLink>
+        <Navbar.Collapse id="menu-principal">
+          <Nav className="ms-auto align-items-md-center">
+            {enlaces.map((enlace) => (
+              <NavLink
+                key={enlace.ruta}
+                to={enlace.ruta}
+                end={enlace.fin}
+                className={({ isActive }) =>
+                  isActive
+                    ? "nav-link active"
+                    : "nav-link"
+                }
+              >
+                {enlace.texto}
+              </NavLink>
+            ))}
+
+            <Button
+              variant="outline-light"
+              className="ms-md-2 position-relative"
+              type="button"
+              aria-label="Abrir o cerrar carrito"
+              aria-expanded={carritoAbierto}
+              onClick={onAlternarCarrito}
+            >
+              Carrito
+              <Badge
+                bg="danger"
+                pill
+                className="ms-2"
+              >
+                {cantidadProductos}
+              </Badge>
+            </Button>
           </Nav>
         </Navbar.Collapse>
-
       </Container>
     </Navbar>
   );
 }
-
-export default Navegacion;

@@ -2,8 +2,9 @@ import { useState } from "react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { TiendaContext } from "../context/TiendaContext.jsx";
+
 import {
   AdminCategorias,
   FormularioProducto,
@@ -11,13 +12,19 @@ import {
 } from "./Vendedor";
 
 const categorias = [
-  { id: 1, nombre: "Guitarras", descripcion: "Instrumentos de cuerda." },
+  {
+    id: 1,
+    nombre: "Guitarras",
+    descripcion: "Instrumentos de cuerda.",
+  },
 ];
 
 function renderVendedor(componente, productosIniciales = []) {
   function ProveedorPrueba({ children }) {
     const [productos, setProductos] = useState(productosIniciales);
-    const [listaCategorias, setListaCategorias] = useState(categorias);
+
+    const [listaCategorias, setListaCategorias] =
+      useState(categorias);
 
     return (
       <TiendaContext.Provider
@@ -43,20 +50,21 @@ function renderVendedor(componente, productosIniciales = []) {
 }
 
 describe("Pruebas del panel del vendedor", () => {
-  afterEach(() => {
-    localStorage.clear();
-  });
-
   it("permite crear un producto, editar su stock y eliminarlo", async () => {
     const user = userEvent.setup();
 
     renderVendedor(
       <Routes>
-        <Route path="/vendedor" element={<ListaProductos />} />
+        <Route
+          path="/vendedor"
+          element={<ListaProductos />}
+        />
+
         <Route
           path="/vendedor/productos/nuevo"
           element={<FormularioProducto />}
         />
+
         <Route
           path="/vendedor/productos/:id/editar"
           element={<FormularioProducto />}
@@ -64,40 +72,96 @@ describe("Pruebas del panel del vendedor", () => {
       </Routes>,
     );
 
-    await user.click(screen.getByRole("link", { name: "Crear producto" }));
-    await user.type(screen.getByLabelText("Código"), "NUE001");
-    await user.type(screen.getByLabelText("Nombre"), "Producto nuevo");
-    await user.selectOptions(screen.getByLabelText("Categoría"), "1");
-
-    await user.clear(screen.getByLabelText("Precio base ($)"));
-    await user.type(screen.getByLabelText("Precio base ($)"), "12000");
-
-    await user.clear(screen.getByLabelText("Stock disponible"));
-    await user.type(screen.getByLabelText("Stock disponible"), "5");
-
     await user.click(
-      screen.getByRole("button", { name: "Guardar producto" }),
+      screen.getByRole("link", {
+        name: "Crear producto",
+      }),
     );
 
-    expect(await screen.findByText("Producto nuevo")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("link", { name: "Editar / stock" }));
-
-    const campoStock = screen.getByLabelText("Stock disponible");
-    await user.clear(campoStock);
-    await user.type(campoStock, "1");
-
-    await user.click(
-      screen.getByRole("button", { name: "Guardar producto" }),
+    await user.type(
+      screen.getByLabelText("Código"),
+      "NUE001",
     );
 
-    expect(await screen.findByText("1 / 2")).toBeInTheDocument();
+    await user.type(
+      screen.getByLabelText("Nombre"),
+      "Producto nuevo",
+    );
 
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    await user.click(screen.getByRole("button", { name: "Eliminar" }));
+    await user.selectOptions(
+      screen.getByLabelText("Categoría"),
+      "1",
+    );
+
+    await user.clear(
+      screen.getByLabelText("Precio base ($)"),
+    );
+
+    await user.type(
+      screen.getByLabelText("Precio base ($)"),
+      "12000",
+    );
+
+    await user.clear(
+      screen.getByLabelText("Stock disponible"),
+    );
+
+    await user.type(
+      screen.getByLabelText("Stock disponible"),
+      "5",
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Guardar producto",
+      }),
+    );
 
     expect(
-      await screen.findByText("No hay productos para mostrar."),
+      await screen.findByText("Producto nuevo"),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("link", {
+        name: "Editar / stock",
+      }),
+    );
+
+    const campoStock =
+      screen.getByLabelText("Stock disponible");
+
+    await user.clear(campoStock);
+
+    await user.type(
+      campoStock,
+      "1",
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Guardar producto",
+      }),
+    );
+
+    expect(
+      await screen.findByText("1 / 2"),
+    ).toBeInTheDocument();
+
+    vi.spyOn(
+      window,
+      "confirm",
+    ).mockReturnValue(true);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Eliminar",
+      }),
+    );
+
+    expect(
+      await screen.findByText(
+        "No hay productos para mostrar.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -116,45 +180,92 @@ describe("Pruebas del panel del vendedor", () => {
       descripcion: "Producto de prueba.",
     };
 
-    renderVendedor(<AdminCategorias />, [producto]);
+    renderVendedor(
+      <AdminCategorias />,
+      [producto],
+    );
 
-    await user.type(screen.getByLabelText("Nombre"), "Micrófonos");
+    await user.type(
+      screen.getByLabelText("Nombre"),
+      "Micrófonos",
+    );
+
     await user.type(
       screen.getByLabelText("Descripción"),
       "Categoría creada en la prueba.",
     );
 
     await user.click(
-      screen.getByRole("button", { name: "Crear categoría" }),
+      screen.getByRole("button", {
+        name: "Crear categoría",
+      }),
     );
 
-    const filaMicrofonos = screen.getByText("Micrófonos").closest("tr");
+    const filaMicrofonos =
+      screen
+        .getByText("Micrófonos")
+        .closest("tr");
 
     await user.click(
-      within(filaMicrofonos).getByRole("button", { name: "Editar" }),
+      within(filaMicrofonos).getByRole(
+        "button",
+        {
+          name: "Editar",
+        },
+      ),
     );
 
-    const campoNombre = screen.getByLabelText("Nombre");
+    const campoNombre =
+      screen.getByLabelText("Nombre");
+
     await user.clear(campoNombre);
-    await user.type(campoNombre, "Audio");
 
-    await user.click(
-      screen.getByRole("button", { name: "Guardar cambios" }),
+    await user.type(
+      campoNombre,
+      "Audio",
     );
 
-    const filaAudio = screen.getByText("Audio").closest("tr");
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-
     await user.click(
-      within(filaAudio).getByRole("button", { name: "Eliminar" }),
+      screen.getByRole("button", {
+        name: "Guardar cambios",
+      }),
     );
 
-    expect(screen.queryByText("Audio")).not.toBeInTheDocument();
+    const filaAudio =
+      screen
+        .getByText("Audio")
+        .closest("tr");
 
-    const filaCategoria = screen.getByText("Guitarras").closest("tr");
+    vi.spyOn(
+      window,
+      "confirm",
+    ).mockReturnValue(true);
 
     await user.click(
-      within(filaCategoria).getByRole("button", { name: "Eliminar" }),
+      within(filaAudio).getByRole(
+        "button",
+        {
+          name: "Eliminar",
+        },
+      ),
+    );
+
+    expect(
+      screen.queryByText("Audio"),
+    ).not.toBeInTheDocument();
+
+    const filaCategoria =
+      screen
+        .getByText("Guitarras")
+        .closest("tr");
+
+    await user.click(
+      within(filaCategoria).getByRole(
+        "button",
+        {
+          name: "Eliminar",
+        },
+      ),
     );
 
     expect(

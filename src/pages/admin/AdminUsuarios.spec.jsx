@@ -9,7 +9,7 @@ import {
   screen,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import AdminUsuarios from "../pages/admin/AdminUsuarios";
+import AdminUsuarios from "./AdminUsuarios";
 
 const usuarioBase = {
   id: 1,

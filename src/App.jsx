@@ -38,12 +38,7 @@ import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminPedidos from "./pages/admin/AdminPedidos";
 import Reportes from "./pages/admin/Reportes";
-
-import "./styles/estilos.css";
-import "./styles/react.css";
-import "./styles/manuel.css";
-
-
+import EstilosGlobales from "./styles/EstilosGlobales";
 function Contenido() {
   const {
     carritoActual,
@@ -128,6 +123,7 @@ function Contenido() {
 export default function App() {
   return (
     <TiendaProvider>
+      <EstilosGlobales />
       <Contenido />
     </TiendaProvider>
   );

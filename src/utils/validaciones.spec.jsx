@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   validarContacto,
   validarRegistro,
-} from "../utils/validaciones";
+} from "./validaciones";
 
 describe("validaciones de formularios", () => {
   it("detecta datos inválidos en contacto", () => {

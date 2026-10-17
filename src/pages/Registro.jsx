@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { validarRegistro } from "../utils/validaciones";
 import { guardarUsuarios, leerUsuarios } from "../utils/storage";
 
+const servicioUsuariosReal = {
+  guardarUsuarios,
+  leerUsuarios,
+};
+
 const formularioInicial = {
   nombre: "",
   apellido: "",
@@ -11,7 +16,9 @@ const formularioInicial = {
   confirmarPassword: "",
 };
 
-export default function Registro() {
+export default function Registro({
+  servicioUsuarios = servicioUsuariosReal,
+}) {
   const navigate = useNavigate();
   const [formulario, setFormulario] = useState(formularioInicial);
   const [errores, setErrores] = useState({});
@@ -24,7 +31,7 @@ export default function Registro() {
   function registrar(evento) {
     evento.preventDefault();
 
-    const usuarios = leerUsuarios();
+    const usuarios = servicioUsuarios.leerUsuarios();
     const nuevosErrores = validarRegistro(formulario, usuarios);
 
     setErrores(nuevosErrores);
@@ -43,7 +50,7 @@ export default function Registro() {
       activo: true,
     };
 
-    guardarUsuarios([...usuarios, nuevoUsuario]);
+    servicioUsuarios.guardarUsuarios([...usuarios, nuevoUsuario]);
 
     navigate("/login", {
       state: {
@@ -59,37 +66,82 @@ export default function Registro() {
 
       <form className="row g-3 mt-2" onSubmit={registrar} noValidate>
         <div className="col-12 col-md-6">
-          <label className="form-label" htmlFor="registro-nombre">Nombre</label>
-          <input className="form-control" id="registro-nombre" name="nombre" value={formulario.nombre} onChange={cambiar} />
+          <label className="form-label" htmlFor="registro-nombre">
+            Nombre
+          </label>
+          <input
+            className="form-control"
+            id="registro-nombre"
+            name="nombre"
+            value={formulario.nombre}
+            onChange={cambiar}
+          />
           <small className="text-danger">{errores.nombre}</small>
         </div>
 
         <div className="col-12 col-md-6">
-          <label className="form-label" htmlFor="registro-apellido">Apellido</label>
-          <input className="form-control" id="registro-apellido" name="apellido" value={formulario.apellido} onChange={cambiar} />
+          <label className="form-label" htmlFor="registro-apellido">
+            Apellido
+          </label>
+          <input
+            className="form-control"
+            id="registro-apellido"
+            name="apellido"
+            value={formulario.apellido}
+            onChange={cambiar}
+          />
           <small className="text-danger">{errores.apellido}</small>
         </div>
 
         <div className="col-12">
-          <label className="form-label" htmlFor="registro-correo">Correo</label>
-          <input className="form-control" id="registro-correo" name="correo" type="email" value={formulario.correo} onChange={cambiar} />
+          <label className="form-label" htmlFor="registro-correo">
+            Correo
+          </label>
+          <input
+            className="form-control"
+            id="registro-correo"
+            name="correo"
+            type="email"
+            value={formulario.correo}
+            onChange={cambiar}
+          />
           <small className="text-danger">{errores.correo}</small>
         </div>
 
         <div className="col-12 col-md-6">
-          <label className="form-label" htmlFor="registro-password">Contraseña</label>
-          <input className="form-control" id="registro-password" name="password" type="password" value={formulario.password} onChange={cambiar} />
+          <label className="form-label" htmlFor="registro-password">
+            Contraseña
+          </label>
+          <input
+            className="form-control"
+            id="registro-password"
+            name="password"
+            type="password"
+            value={formulario.password}
+            onChange={cambiar}
+          />
           <small className="text-danger">{errores.password}</small>
         </div>
 
         <div className="col-12 col-md-6">
-          <label className="form-label" htmlFor="registro-confirmar">Confirmar contraseña</label>
-          <input className="form-control" id="registro-confirmar" name="confirmarPassword" type="password" value={formulario.confirmarPassword} onChange={cambiar} />
+          <label className="form-label" htmlFor="registro-confirmar">
+            Confirmar contraseña
+          </label>
+          <input
+            className="form-control"
+            id="registro-confirmar"
+            name="confirmarPassword"
+            type="password"
+            value={formulario.confirmarPassword}
+            onChange={cambiar}
+          />
           <small className="text-danger">{errores.confirmarPassword}</small>
         </div>
 
         <div className="col-12">
-          <button className="btn btn-info" type="submit">Crear cuenta</button>
+          <button className="btn btn-info" type="submit">
+            Crear cuenta
+          </button>
         </div>
       </form>
     </section>

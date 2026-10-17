@@ -16,13 +16,34 @@ function leer(clave, inicial) {
   }
 }
 
+// Agregar los nuevos productos y categorias una sola vez
+function leerCatalogo(clave, inicial) {
+  const guardados = leer(clave, inicial);
+
+  if (
+    localStorage.getItem("svReactCatalogoVersion") === "2"
+  ) {
+    return guardados;
+  }
+
+  const ids = new Set(
+    guardados.map((item) => Number(item.id)),
+  );
+
+  const nuevos = inicial.filter(
+    (item) => item.id >= 4 && !ids.has(Number(item.id)),
+  );
+
+  return [...guardados, ...nuevos];
+}
+
 export default function TiendaProvider({ children }) {
   const [productos, setProductos] = useState(() =>
-    leer("svReactProductos", productosIniciales),
+    leerCatalogo("svReactProductos", productosIniciales),
   );
 
   const [categorias, setCategorias] = useState(() =>
-    leer("svReactCategorias", categoriasIniciales),
+    leerCatalogo("svReactCategorias", categoriasIniciales),
   );
 
   const [carrito, setCarritoOriginal] = useState(() =>
@@ -71,7 +92,7 @@ export default function TiendaProvider({ children }) {
       producto.stock === 0 ||
       cantidadActual >= producto.stock
     ) {
-      setMensaje("No hay más unidades disponibles.");
+      setMensaje("No hay mas unidades disponibles.");
       return;
     }
 
@@ -85,7 +106,7 @@ export default function TiendaProvider({ children }) {
       },
     ]);
 
-    setMensaje("Producto añadido al carrito.");
+    setMensaje("Producto agregado al carrito.");
   }
 
   useEffect(() => {
@@ -93,14 +114,14 @@ export default function TiendaProvider({ children }) {
       "svReactProductos",
       JSON.stringify(productos),
     );
-  }, [productos]);
 
-  useEffect(() => {
     localStorage.setItem(
       "svReactCategorias",
       JSON.stringify(categorias),
     );
-  }, [categorias]);
+
+    localStorage.setItem("svReactCatalogoVersion", "2");
+  }, [productos, categorias]);
 
   useEffect(() => {
     localStorage.setItem(

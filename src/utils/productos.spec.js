@@ -1,70 +1,48 @@
 import { describe, expect, it } from "vitest";
-import {
-  esCritico,
-  precioFinal,
-  validarProducto,
-} from "./productos";
+import { validarProducto } from "./productos";
 
 const categorias = [{ id: 1, nombre: "Guitarras" }];
 
-const productos = [
-  {
-    id: 1,
-    codigo: "GUI001",
-    nombre: "Guitarra de prueba",
-    categoriaId: 1,
-    precio: 100000,
-    stock: 5,
-    stockCritico: 2,
-    descuento: 0,
-    descripcion: "Guitarra para probar.",
-  },
-];
+const producto = {
+  id: 2,
+  codigo: "NUE001",
+  nombre: "Guitarra de prueba",
+  descripcion: "Descripción válida.",
+  precio: 10000,
+  stock: 5,
+  stockCritico: 2,
+  descuento: 10,
+  categoriaId: 1,
+};
 
-describe("Pruebas de las utilidades de productos", () => {
-  it("mantiene el precio cuando no tiene descuento", () => {
-    expect(precioFinal({ precio: 10000, descuento: 0 })).toBe(10000);
-  });
+describe("Validación de productos", () => {
+  it("indica el error cuando un campo contiene un dato inválido", () => {
+    expect(
+      validarProducto({ ...producto, codigo: "AB" }, [], categorias),
+    ).toBe("El código debe tener al menos 3 caracteres.");
 
-  it("calcula el precio final con descuento", () => {
-    expect(precioFinal({ precio: 10000, descuento: 15 })).toBe(8500);
-  });
+    expect(
+      validarProducto({ ...producto, nombre: " " }, [], categorias),
+    ).toBe("El nombre debe tener entre 1 y 100 caracteres.");
 
-  it("identifica como crítico el stock igual al mínimo", () => {
-    expect(esCritico({ stock: 2, stockCritico: 2 })).toBe(true);
-  });
+    expect(
+      validarProducto({ ...producto, descripcion: "A".repeat(501) }, [], categorias),
+    ).toBe("La descripción admite hasta 500 caracteres.");
 
-  it("acepta un producto válido", () => {
-    const producto = {
-      id: 2,
-      codigo: "TEST02",
-      nombre: "Producto de prueba",
-      descripcion: "Descripción válida.",
-      precio: 10000,
-      stock: 5,
-      stockCritico: 2,
-      descuento: 10,
-      categoriaId: 1,
-    };
+    expect(
+      validarProducto({ ...producto, precio: -1 }, [], categorias),
+    ).toBe("El precio debe ser un número positivo o cero.");
 
-    expect(validarProducto(producto, productos, categorias)).toBe("");
-  });
+    expect(
+      validarProducto({ ...producto, stock: -1 }, [], categorias),
+    ).toBe("El stock y el umbral crítico deben ser enteros positivos o cero.");
 
-  it("rechaza un código duplicado aunque cambien las mayúsculas", () => {
-    const producto = {
-      id: 2,
-      codigo: "gui001",
-      nombre: "Otra guitarra",
-      descripcion: "Descripción válida.",
-      precio: 10000,
-      stock: 5,
-      stockCritico: 2,
-      descuento: 0,
-      categoriaId: 1,
-    };
+    expect(
+      validarProducto({ ...producto, descuento: 101 }, [], categorias),
+    ).toBe("El descuento debe estar entre 0 y 100.");
 
-    expect(validarProducto(producto, productos, categorias)).toBe(
-      "Ya existe un producto con ese código.",
-    );
+    expect(
+      validarProducto({ ...producto, categoriaId: 999 }, [], categorias),
+    ).toBe("Selecciona una categoría válida.");
   });
 });

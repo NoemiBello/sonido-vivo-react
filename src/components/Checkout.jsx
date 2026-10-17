@@ -1,38 +1,69 @@
-
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  guardarPedidos,
+  leerPedidos,
+  leerSesion,
+} from "../utils/storage";
 
 function Checkout({ carrito, setCarrito }) {
     const navigate = useNavigate();
     const [tipoEntrega, setTipoEntrega] = useState("");
 
-    function confirmarCompra(e) {
-        e.preventDefault();
+    function confirmarCompra(evento) {
+  evento.preventDefault();
 
-        if (carrito.length === 0) {
-            alert("Debes agregar productos al carrito antes de comprar.");
-            return;
-        }
+  if (carrito.length === 0) {
+    alert(
+      "Debes agregar productos al carrito antes de comprar.",
+    );
+    return;
+  }
 
-        const datos = new FormData(e.currentTarget);
+  const datos = new FormData(
+    evento.currentTarget,
+  );
 
-        const pedido = {
-            nombre: datos.get("nombre"),
-            correo: datos.get("correo"),
-            tipoEntrega: tipoEntrega,
-            direccion: tipoEntrega === "despacho"
-                ? datos.get("direccion")
-                : "",
-            productos: [...carrito],
-            total: total
-        };
+  const sesion = leerSesion();
+  const pedidos = leerPedidos();
 
-        navigate("/compra-exitosa", {
-            state: { pedido }
-        });
+  const pedido = {
+    id: Date.now(),
+    usuarioId: sesion?.id ?? null,
+    fecha: new Date()
+      .toISOString()
+      .slice(0, 10),
+    estado: "En preparación",
+    tipoEntrega:
+      tipoEntrega === "despacho"
+        ? "Despacho"
+        : "Retiro en tienda",
+    direccion:
+      tipoEntrega === "despacho"
+        ? datos.get("direccion")
+        : "",
+    productos: carrito.map(
+      (producto) => ({
+        productoId: producto.id,
+        nombre: producto.nombre,
+        cantidad: producto.cantidad,
+        precio: producto.precio,
+      }),
+    ),
+    total,
+  };
 
-        setCarrito([]);
-    }
+  guardarPedidos([
+    ...pedidos,
+    pedido,
+  ]);
+
+  setCarrito([]);
+
+  navigate("/compra-exitosa", {
+    state: { pedido },
+  });
+}
     const total = carrito.reduce(
         (acumulado, producto) =>
             acumulado + producto.precio * producto.cantidad,

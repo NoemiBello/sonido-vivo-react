@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import Servicios from "../components/Servicios";
+import Servicios from "./Servicios";
 
 describe("formulario de servicios", () => {
   it("rechaza una solicitud con datos inválidos", async () => {

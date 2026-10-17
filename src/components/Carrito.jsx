@@ -12,7 +12,7 @@ function Carrito({ carrito, setCarrito }) {
 
                 {/* Lista de productos */}
                 <section className="col-12 col-lg-8">
-                    <div className="card p-3 h-100">
+                    <div className="card sv-card text-white p-3 h-100">
                         <h1 className="h3 mb-4">Carrito de compras</h1>
 
                         {carrito.length === 0 ? (
@@ -29,7 +29,7 @@ function Carrito({ carrito, setCarrito }) {
                             <div className="d-flex flex-column gap-3">
                                 {carrito.map((producto) => (
                                     <article
-                                        className="tarjeta-carrito card p-3"
+                                        className="tarjeta-carrito card sv-card text-white p-3"
                                         key={producto.id}
                                     >
                                         <div className="row g-3 align-items-center">
@@ -93,7 +93,7 @@ function Carrito({ carrito, setCarrito }) {
                             </div>
                         )}
 
-                        <div className="d-flex flex-column flex-sm-row gap-2 mt-4">
+<div className="d-flex flex-column flex-sm-row justify-content-start align-items-stretch gap-2 mt-4">
                             <button
                                 id="vaciar-carrito"
                                 type="button"
@@ -104,7 +104,10 @@ function Carrito({ carrito, setCarrito }) {
                                 Vaciar carrito
                             </button>
 
-                            <Link to="/catalogo" className="btn btn-outline-info">
+                            <Link
+                                to="/catalogo"
+                                className="btn boton d-inline-flex align-items-center justify-content-center"
+                            >
                                 Seguir comprando
                             </Link>
                         </div>
@@ -113,7 +116,7 @@ function Carrito({ carrito, setCarrito }) {
 
                 {/* Resumen de compra */}
                 <aside className="col-12 col-lg-4">
-                    <div className="card p-3">
+                    <div className="card sv-card text-white p-3">
                         <h2 className="h4 mb-4">Resumen de compra</h2>
 
                         <div className="d-flex justify-content-between gap-3 mb-3">

@@ -8,6 +8,7 @@ El proyecto fue construido como una **Single Page Application (SPA)** utilizando
 
 El desarrollo corresponde a la Experiencia de Aprendizaje 2 de Fullstack II.
 
+### **URL:** http://3.87.154.141/
 ---
 
 # 🚀 Tecnologías utilizadas

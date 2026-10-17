@@ -10,22 +10,8 @@ function SelectorCantidad({ producto, carrito, setCarrito }) {
     setCantidadEscrita(String(producto.cantidad));
   }, [producto.cantidad]);
 
-  function cambiarCantidad(valor) {
-    setCantidadEscrita(valor);
-
-    if (valor === "") {
-      return;
-    }
-
-    const numero = Number(valor);
-
-    if (
-      !Number.isInteger(numero) ||
-      numero < 1 ||
-      (producto.stock != null && numero > producto.stock)
-    ) {
-      return;
-    }
+  function actualizarCantidad(numero) {
+    setCantidadEscrita(String(numero));
 
     setCarrito(
       carrito.map((item) =>
@@ -36,16 +22,38 @@ function SelectorCantidad({ producto, carrito, setCarrito }) {
     );
   }
 
-  function revisarCantidad() {
-    const numero = Number(cantidadEscrita);
+  function cambiarCantidad(valor) {
+    const numero = Number(valor);
 
     if (
       !Number.isInteger(numero) ||
       numero < 1 ||
       (producto.stock != null && numero > producto.stock)
     ) {
-      setCantidadEscrita(String(producto.cantidad));
+      return;
     }
+
+    actualizarCantidad(numero);
+  }
+
+  function escribirCantidad(valor) {
+    setCantidadEscrita(valor);
+  }
+
+  function revisarCantidad() {
+    const numero = Number(cantidadEscrita);
+
+    if (!Number.isInteger(numero) || numero < 1) {
+      setCantidadEscrita(String(producto.cantidad));
+      return;
+    }
+
+    const cantidadFinal =
+      producto.stock != null
+        ? Math.min(numero, producto.stock)
+        : numero;
+
+    actualizarCantidad(cantidadFinal);
   }
 
   return (
@@ -58,9 +66,10 @@ function SelectorCantidad({ producto, carrito, setCarrito }) {
         className="form-control text-center"
         min="1"
         max={producto.stock ?? undefined}
+        step="1"
         value={cantidadEscrita}
         aria-label={`Cantidad de ${producto.nombre}`}
-        onChange={(e) => cambiarCantidad(e.target.value)}
+        onChange={(e) => escribirCantidad(e.target.value)}
         onBlur={revisarCantidad}
       />
 

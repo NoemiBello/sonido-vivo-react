@@ -31,7 +31,7 @@ describe("Validación de productos", () => {
 
     expect(
       validarProducto({ ...producto, precio: -1 }, [], categorias),
-    ).toBe("El precio debe ser un número positivo o cero.");
+    ).toBe("El precio debe ser un número mayor que cero.");
 
     expect(
       validarProducto({ ...producto, stock: -1 }, [], categorias),

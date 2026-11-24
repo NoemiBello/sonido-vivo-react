@@ -45,6 +45,9 @@ function Contenido() {
     setCarrito,
     agregarAlCarrito,
     mensaje,
+    cargando,
+    errorCarga,
+    recargarCatalogo,
   } = useTienda();
 
  return (
@@ -60,8 +63,10 @@ function Contenido() {
         </div>
       )}
 
+      {cargando && <p className="container py-3" role="status">Cargando catálogo…</p>}
+      {errorCarga && <div className="container alert alert-danger" role="alert">{errorCarga} <button className="btn btn-outline-light" onClick={() => recargarCatalogo()}>Reintentar</button></div>}
       <main id="contenido-principal">
-        <Routes>
+        {!cargando && <Routes>
           <Route path="/" element={<Inicio agregarAlCarrito={agregarAlCarrito} />} />
           <Route path="/catalogo" element={<Catalogo agregarAlCarrito={agregarAlCarrito} />} />
           <Route path="/ofertas" element={<Catalogo ofertas agregarAlCarrito={agregarAlCarrito} />} />
@@ -112,7 +117,7 @@ function Contenido() {
               </section>
             }
           />
-        </Routes>
+        </Routes>}
       </main>
 
       <Footer />

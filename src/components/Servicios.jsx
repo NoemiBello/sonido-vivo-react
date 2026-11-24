@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { validarServicio } from "../utils/validaciones";
+import { crearSolicitud } from "../services/serviciosTecnicosService";
 
 const formularioInicial = {
   nombre: "",
@@ -14,6 +15,8 @@ function Servicios() {
   const [formulario, setFormulario] = useState(formularioInicial);
   const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState("");
+  const [errorEnvio, setErrorEnvio] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   function cambiar(evento) {
     const { name, value, type, checked } = evento.target;
@@ -23,19 +26,38 @@ function Servicios() {
     });
   }
 
-  function enviar(evento) {
+  async function enviar(evento) {
     evento.preventDefault();
 
     const nuevosErrores = validarServicio(formulario);
     setErrores(nuevosErrores);
+    setMensaje("");
+    setErrorEnvio("");
 
     if (Object.keys(nuevosErrores).length > 0) {
-      setMensaje("");
       return;
     }
 
-    setMensaje("Solicitud validada correctamente.");
-    setFormulario(formularioInicial);
+    setEnviando(true);
+
+    try {
+      const solicitud = await crearSolicitud({
+        nombre: formulario.nombre.trim(),
+        correo: formulario.correo.trim(),
+        telefono: formulario.telefono.trim(),
+        instrumento: formulario.instrumento,
+        descripcion: formulario.descripcion.trim(),
+      });
+
+      setMensaje(
+        `Solicitud N° ${solicitud.id} recibida. Estado: ${solicitud.estado}.`,
+      );
+      setFormulario(formularioInicial);
+    } catch (error) {
+      setErrorEnvio(error.message);
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -43,7 +65,7 @@ function Servicios() {
       <header className="encabezado-pagina">
         <p className="etiqueta">Servicio técnico</p>
         <h1>Reparación de instrumentos de cuerda</h1>
-        <p>Completa el formulario para solicitar una revisión de demostración de tu instrumento.</p>
+        <p>Completa el formulario para solicitar una revisión de tu instrumento.</p>
       </header>
 
       <section className="informacion-servicio" aria-labelledby="titulo-como-funciona">
@@ -52,7 +74,7 @@ function Servicios() {
           <li>Ingresa tus datos de contacto.</li>
           <li>Selecciona el tipo de instrumento.</li>
           <li>Describe brevemente el problema.</li>
-          <li>React comprobará los datos antes de continuar.</li>
+          <li>Revisa el avance de tu solicitud desde tu perfil.</li>
         </ol>
       </section>
 
@@ -68,7 +90,7 @@ function Servicios() {
 
       <section className="seccion-formulario" aria-labelledby="titulo-formulario">
         <h2 id="titulo-formulario">Solicitar revisión</h2>
-        <p>Utiliza datos ficticios. Esta demostración no envía información a un servidor.</p>
+        <p>Utiliza datos ficticios: es un proyecto académico.</p>
 
         <form className="formulario-servicio" onSubmit={enviar} noValidate>
           <fieldset>
@@ -110,7 +132,7 @@ function Servicios() {
 
             <div className="campo-formulario">
               <label htmlFor="descripcion">Descripción del problema</label>
-              <textarea id="descripcion" name="descripcion" rows={5} value={formulario.descripcion} onChange={cambiar} aria-invalid={Boolean(errores.descripcion)} />
+              <textarea id="descripcion" name="descripcion" rows={5} maxLength={500} value={formulario.descripcion} onChange={cambiar} aria-invalid={Boolean(errores.descripcion)} />
               <small className="mensaje-error">{errores.descripcion}</small>
             </div>
           </fieldset>
@@ -122,8 +144,11 @@ function Servicios() {
 
           <small className="mensaje-error">{errores.aceptaCondiciones}</small>
 
-          <button type="submit">Validar solicitud</button>
+          <button type="submit" disabled={enviando}>
+            {enviando ? "Enviando..." : "Enviar solicitud"}
+          </button>
           <p role="status">{mensaje}</p>
+          {errorEnvio && <p className="mensaje-error" role="alert">{errorEnvio}</p>}
         </form>
       </section>
     </div>

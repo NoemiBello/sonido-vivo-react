@@ -50,10 +50,19 @@ function renderVendedor(
       <TiendaContext.Provider
         value={{
           productos,
-          setProductos,
+          guardarProducto: async (producto) => {
+            const nuevo = { ...producto, id: producto.id || Date.now() };
+            setProductos((lista) => [...lista.filter((p) => p.id !== nuevo.id), nuevo]);
+            return nuevo;
+          },
+          eliminarProducto: async (id) => setProductos((lista) => lista.filter((p) => p.id !== id)),
           categorias: listaCategorias,
-          setCategorias:
-            setListaCategorias,
+          guardarCategoria: async (categoria) => {
+            const nueva = { ...categoria, id: categoria.id || Date.now() };
+            setListaCategorias((lista) => [...lista.filter((c) => c.id !== nueva.id), nueva]);
+            return nueva;
+          },
+          eliminarCategoria: async (id) => setListaCategorias((lista) => lista.filter((c) => c.id !== id)),
         }}
       >
         {children}

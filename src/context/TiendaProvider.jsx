@@ -1,10 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { TiendaContext } from "./TiendaContext";
-import {
-  productosIniciales,
-  categoriasIniciales,
-} from "../data/datos";
+import * as api from "../services/catalogoService";
 import { precioFinal } from "../utils/productos";
 
 function leer(clave, inicial) {
@@ -16,35 +13,60 @@ function leer(clave, inicial) {
   }
 }
 
-// Agregar los nuevos productos y categorias una sola vez
-function leerCatalogo(clave, inicial) {
-  const guardados = leer(clave, inicial);
-
-  if (
-    localStorage.getItem("svReactCatalogoVersion") === "2"
-  ) {
-    return guardados;
-  }
-
-  const ids = new Set(
-    guardados.map((item) => Number(item.id)),
-  );
-
-  const nuevos = inicial.filter(
-    (item) => item.id >= 4 && !ids.has(Number(item.id)),
-  );
-
-  return [...guardados, ...nuevos];
-}
-
 export default function TiendaProvider({ children }) {
-  const [productos, setProductos] = useState(() =>
-    leerCatalogo("svReactProductos", productosIniciales),
-  );
+  const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
 
-  const [categorias, setCategorias] = useState(() =>
-    leerCatalogo("svReactCategorias", categoriasIniciales),
-  );
+  useEffect(() => {
+    const control = new AbortController();
+    api.cargarCatalogo(control.signal).then((datos) => {
+      if (control.signal.aborted) return;
+      setProductos(datos.productos);
+      setCategorias(datos.categorias);
+    }).catch((error) => {
+      if (!control.signal.aborted) setErrorCarga(error.message);
+    }).finally(() => { if (!control.signal.aborted) setCargando(false); });
+    return () => control.abort();
+  }, []);
+
+  async function recargarCatalogo() {
+    setCargando(true);
+    setErrorCarga("");
+    try {
+      const datos = await api.cargarCatalogo();
+      setProductos(datos.productos);
+      setCategorias(datos.categorias);
+    } catch (error) { setErrorCarga(error.message); }
+    finally { setCargando(false); }
+  }
+  async function guardarProducto(producto) {
+    try {
+      const nuevo = await api.guardarProducto(producto);
+      setProductos((lista) => [...lista.filter((p) => p.id !== nuevo.id), nuevo].sort((a,b) => a.id-b.id));
+      return nuevo;
+    } catch (error) {
+      if (error.producto) {
+        const parcial = { ...error.producto, stock: 0, stockCritico: 0 };
+        setProductos((lista) => [...lista.filter((p) => p.id !== parcial.id), parcial]);
+      }
+      throw error;
+    }
+  }
+  async function eliminarProducto(id) {
+    await api.eliminarProducto(id);
+    setProductos((lista) => lista.filter((p) => p.id !== id));
+  }
+  async function guardarCategoria(categoria) {
+    const nueva = await api.guardarCategoria(categoria);
+    setCategorias((lista) => [...lista.filter((c) => c.id !== nueva.id), nueva].sort((a,b) => a.id-b.id));
+    return nueva;
+  }
+  async function eliminarCategoria(id) {
+    await api.eliminarCategoria(id);
+    setCategorias((lista) => lista.filter((c) => c.id !== id));
+  }
 
   const [carrito, setCarritoOriginal] = useState(() =>
     leer("carrito", []),
@@ -111,20 +133,6 @@ export default function TiendaProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem(
-      "svReactProductos",
-      JSON.stringify(productos),
-    );
-
-    localStorage.setItem(
-      "svReactCategorias",
-      JSON.stringify(categorias),
-    );
-
-    localStorage.setItem("svReactCatalogoVersion", "2");
-  }, [productos, categorias]);
-
-  useEffect(() => {
-    localStorage.setItem(
       "carrito",
       JSON.stringify(carrito),
     );
@@ -134,9 +142,14 @@ export default function TiendaProvider({ children }) {
     <TiendaContext.Provider
       value={{
         productos,
-        setProductos,
+        guardarProducto,
+        eliminarProducto,
         categorias,
-        setCategorias,
+        guardarCategoria,
+        eliminarCategoria,
+        cargando,
+        errorCarga,
+        recargarCatalogo,
         carritoActual,
         setCarrito,
         agregarAlCarrito,

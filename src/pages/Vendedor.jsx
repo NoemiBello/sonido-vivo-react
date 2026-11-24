@@ -1,154 +1,73 @@
-import { useState } from "react";
-import {
-  Link,
-  NavLink,
-  Outlet,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-
+import { useState, useEffect } from "react";
+import { Link, NavLink, Outlet, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useTienda } from "../context/TiendaContext";
-import { cerrarSesion, leerSesion } from "../utils/storage";
-import {
-  esCritico,
-  moneda,
-  validarProducto,
-} from "../utils/productos";
+import { esCritico, moneda, validarProducto } from "../utils/productos";
+import { obtenerToken, guardarToken, cerrarAcceso, validarAcceso } from "../services/api";
 
-// ACCESO DEL VENDEDOR
+export function AccesoVendedor() { return <Navigate to="/vendedor" replace />; }
 
-export function AccesoVendedor() {
-  const navigate = useNavigate();
+export function VendedorLayout() {
+  const [sesion, setSesion] = useState(null);
+  const [token, setToken] = useState("");
+  const [error, setError] = useState("");
+  const [verificando, setVerificando] = useState(() => Boolean(obtenerToken()));
 
-  function entrar(evento) {
+  useEffect(() => {
+    let activo = true;
+    function cerrar() {
+      setSesion(null);
+      setError("Vuelve a ingresar un token válido para continuar.");
+    }
+    window.addEventListener("sv-api-sesion", cerrar);
+    if (obtenerToken()) {
+      validarAcceso().then((datos) => { if (activo) setSesion(datos); })
+        .catch((error) => { if (activo) setError(error.message); })
+        .finally(() => { if (activo) setVerificando(false); });
+    }
+    return () => { activo = false; window.removeEventListener("sv-api-sesion", cerrar); };
+  }, []);
+
+  async function entrar(evento) {
     evento.preventDefault();
-
-    const datos = new FormData(evento.target);
-
-    localStorage.setItem("sesionActiva", "true");
-    localStorage.setItem("tipoUsuario", "vendedor");
-    localStorage.setItem("correoUsuario", datos.get("correo"));
-
-    navigate("/vendedor");
+    if (verificando) return;
+    const candidato = token.trim().replace(/^Bearer\s+/i, "");
+    if (!candidato) { setError("Ingresa tu token de acceso."); return; }
+    setVerificando(true);
+    setError("");
+    try {
+      const datos = await validarAcceso(candidato);
+      guardarToken(candidato);
+      setSesion(datos);
+      setToken("");
+    } catch (error) { setError(error.message); }
+    finally { setVerificando(false); }
   }
 
-  return (
-    <section
-      className="container sv-pagina py-4"
-      data-bs-theme="dark"
-    >
-      <h1 className="mb-3">Acceso del vendedor</h1>
-
-      <p className="text-body-secondary">
-        Acceso de demostración para la evaluación.
-        No verifica credenciales en un servidor.
-      </p>
-
+  if (!sesion) return (
+    <section className="container sv-pagina py-4" data-bs-theme="dark">
+      <h1>Administrar productos y stock</h1>
+      <p>Ingresa tu token de autenticación con permiso ADMIN para acceder.</p>
       <form className="row g-3 my-3" onSubmit={entrar}>
-        <div className="col-12 col-md-6">
-          <label htmlFor="correo-vendedor" className="form-label">
-            Correo
-          </label>
-
-          <input
-            id="correo-vendedor"
-            className="form-control"
-            name="correo"
-            type="email"
-            autoComplete="username"
-            required
-          />
-        </div>
-
-        <div className="col-12 col-md-6">
-          <label
-            htmlFor="clave-vendedor"
-            className="form-label"
-          >
-            Contraseña de demostración
-          </label>
-
-          <input
-            id="clave-vendedor"
-            className="form-control"
-            type="password"
-            autoComplete="current-password"
-            minLength={4}
-            maxLength={10}
-            required
-          />
-        </div>
-
         <div className="col-12">
-          <button type="submit" className="btn btn-sonido">
-            Ingresar
-          </button>
+          <label className="form-label" htmlFor="token-api">Token de acceso</label>
+          <textarea id="token-api" className="form-control" rows={3} value={token} onChange={(e) => setToken(e.target.value)} disabled={verificando} autoComplete="off" required />
         </div>
+        {error && <div className="col-12 alert alert-danger" role="alert">{error}</div>}
+        <div className="col-12"><button className="btn btn-sonido" disabled={verificando} type="submit">{verificando ? "Verificando acceso…" : "Acceder al panel"}</button></div>
       </form>
     </section>
   );
-}
-
-// ESTRUCTURA DEL PANEL
-
-export function VendedorLayout() {
-  const navigate = useNavigate();
-
-  const sesion = leerSesion();
-
-  function salir() {
-    cerrarSesion();
-    navigate("/login");
-  }
 
   return (
-    <section
-      className="container sv-pagina py-4"
-      data-bs-theme="dark"
-    >
-      <p className="text-info mb-2">ADMINISTRACIÓN</p>
-
-      <h1 className="mb-3">Panel del vendedor</h1>
-
-      <p className="text-body-secondary">
-        {sesion?.correo}
-      </p>
-
-      <nav
-        className="nav nav-pills gap-2 my-4"
-        aria-label="Administración del vendedor"
-      >
-        <NavLink
-          end
-          to="/vendedor"
-          className="nav-link"
-        >
-          Productos
-        </NavLink>
-
-        <NavLink
-          to="/vendedor/categorias"
-          className="nav-link"
-        >
-          Categorías
-        </NavLink>
-
-        <NavLink
-          to="/vendedor/stock-critico"
-          className="nav-link"
-        >
-          Stock crítico
-        </NavLink>
-
-        <button
-          type="button"
-          className="btn btn-outline-danger ms-md-auto"
-          onClick={salir}
-        >
-          Cerrar sesión
-        </button>
+    <section className="container sv-pagina py-4" data-bs-theme="dark">
+      <h1>Productos y stock</h1>
+      <p className="text-body-secondary">{sesion.correo}</p>
+      <nav className="nav nav-pills gap-2 my-4" aria-label="Administración del catálogo">
+        <NavLink end to="/vendedor" className="nav-link">Productos</NavLink>
+        <NavLink to="/vendedor/categorias" className="nav-link">Categorías</NavLink>
+        <NavLink to="/vendedor/stock-critico" className="nav-link">Stock crítico</NavLink>
+        <button type="button" className="btn btn-outline-danger ms-md-auto" onClick={() => { cerrarAcceso(); setError(""); }}>Cerrar acceso</button>
       </nav>
-
       <Outlet />
     </section>
   );
@@ -159,11 +78,13 @@ export function VendedorLayout() {
 export function ListaProductos({ criticos = false }) {
   const {
     productos,
-    setProductos,
+    eliminarProducto,
     categorias,
   } = useTienda();
 
   const [busqueda, setBusqueda] = useState("");
+  const [error, setError] = useState("");
+  const [eliminando, setEliminando] = useState(false);
 
   const lista = productos.filter((producto) => {
     const coincideStock =
@@ -184,22 +105,24 @@ export function ListaProductos({ criticos = false }) {
 
   const cantidadCriticos = productos.filter(esCritico).length;
 
-  function eliminar(producto) {
+  async function eliminar(producto) {
+    if (eliminando) return;
     const confirmar = window.confirm(
       `¿Eliminar ${producto.nombre}?`,
     );
 
     if (confirmar) {
-      setProductos(
-        productos.filter(
-          (actual) => actual.id !== producto.id,
-        ),
-      );
+      setEliminando(true);
+      setError("");
+      try { await eliminarProducto(producto.id); }
+      catch (error) { setError(error.message); }
+      finally { setEliminando(false); }
     }
   }
 
   return (
     <>
+      {error && <div className="alert alert-danger" role="alert">{error}</div>}
       <div className="row g-3 my-4">
         <div className="col-12 col-md-4">
           <article className="card sv-card h-100">
@@ -344,6 +267,7 @@ export function ListaProductos({ criticos = false }) {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-danger"
+                      disabled={eliminando}
                       onClick={() => eliminar(producto)}
                     >
                       Eliminar
@@ -372,7 +296,7 @@ export function FormularioProducto() {
 
   const {
     productos,
-    setProductos,
+    guardarProducto,
     categorias,
   } = useTienda();
 
@@ -398,6 +322,7 @@ export function FormularioProducto() {
   );
 
   const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   if (id && !existente) {
     return (
@@ -420,12 +345,13 @@ export function FormularioProducto() {
     });
   }
 
-  function guardar(evento) {
+  async function guardar(evento) {
     evento.preventDefault();
+    if (guardando) return;
 
     const producto = {
       ...form,
-      id: existente?.id || Date.now(),
+      id: form.id || existente?.id,
       codigo: form.codigo.trim(),
       nombre: form.nombre.trim(),
       precio: Number(form.precio),
@@ -446,19 +372,12 @@ export function FormularioProducto() {
       return;
     }
 
-    if (existente) {
-      setProductos(
-        productos.map((actual) =>
-          actual.id === producto.id
-            ? producto
-            : actual,
-        ),
-      );
-    } else {
-      setProductos([...productos, producto]);
-    }
-
-    navigate("/vendedor");
+    setGuardando(true);
+    try { await guardarProducto(producto); navigate("/vendedor"); }
+    catch (error) {
+      if (error.producto) setForm(error.producto);
+      setError(error.message);
+    } finally { setGuardando(false); }
   }
 
   const camposNumericos = [
@@ -640,7 +559,7 @@ export function FormularioProducto() {
           <button
             type="submit"
             className="btn btn-sonido"
-            disabled={categorias.length === 0}
+            disabled={guardando || categorias.length === 0}
           >
             Guardar producto
           </button>
@@ -662,7 +581,8 @@ export function FormularioProducto() {
 export function AdminCategorias() {
   const {
     categorias,
-    setCategorias,
+    guardarCategoria,
+    eliminarCategoria,
     productos,
   } = useTienda();
 
@@ -673,6 +593,7 @@ export function AdminCategorias() {
   });
 
   const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   function limpiarFormulario() {
     setForm({
@@ -682,8 +603,9 @@ export function AdminCategorias() {
     });
   }
 
-  function guardar(evento) {
+  async function guardar(evento) {
     evento.preventDefault();
+    if (guardando) return;
 
     const nombre = form.nombre.trim();
 
@@ -706,26 +628,17 @@ export function AdminCategorias() {
     const categoria = {
       ...form,
       nombre,
-      id: form.id || Date.now(),
+      id: form.id,
     };
 
-    if (form.id) {
-      setCategorias(
-        categorias.map((actual) =>
-          actual.id === categoria.id
-            ? categoria
-            : actual,
-        ),
-      );
-    } else {
-      setCategorias([...categorias, categoria]);
-    }
-
-    limpiarFormulario();
-    setError("");
+    setGuardando(true);
+    try { await guardarCategoria(categoria); limpiarFormulario(); setError(""); }
+    catch (error) { setError(error.message); }
+    finally { setGuardando(false); }
   }
 
-  function eliminar(categoria) {
+  async function eliminar(categoria) {
+    if (guardando) return;
     const tieneProductos = productos.some(
       (producto) => producto.categoriaId === categoria.id,
     );
@@ -742,17 +655,13 @@ export function AdminCategorias() {
     );
 
     if (confirmar) {
-      setCategorias(
-        categorias.filter(
-          (actual) => actual.id !== categoria.id,
-        ),
-      );
-
-      if (form.id === categoria.id) {
-        limpiarFormulario();
-      }
-
-      setError("");
+      setGuardando(true);
+      try {
+        await eliminarCategoria(categoria.id);
+        if (form.id === categoria.id) limpiarFormulario();
+        setError("");
+      } catch (error) { setError(error.message); }
+      finally { setGuardando(false); }
     }
   }
 
@@ -814,7 +723,7 @@ export function AdminCategorias() {
         ))}
 
         <div className="col-12 d-flex flex-wrap gap-2">
-          <button type="submit" className="btn btn-sonido">
+          <button type="submit" disabled={guardando} className="btn btn-sonido">
             {form.id
               ? "Guardar cambios"
               : "Crear categoría"}
@@ -871,6 +780,7 @@ export function AdminCategorias() {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-danger"
+                      disabled={guardando}
                       onClick={() => eliminar(categoria)}
                     >
                       Eliminar

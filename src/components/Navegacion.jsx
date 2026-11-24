@@ -96,6 +96,9 @@ function Navegacion({ carrito, setCarrito }) {
 
             {sesion ? (
               <>
+                {sesion.rol === "ADMIN" && (
+                  <NavLink className="nav-link" to="/vendedor">Productos y stock</NavLink>
+                )}
                 <NavLink className="nav-link" to={rutaPorRol(sesion.rol)}>
                   {sesion.rol === "USER" ? "Perfil" : "Panel"}
                 </NavLink>

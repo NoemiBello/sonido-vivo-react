@@ -1,7 +1,12 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { leerSesion } from '../utils/storage';
 
 function Footer() {
+  // useLocation vuelve a renderizar el pie al cambiar de página.
+  useLocation();
+  const esVendedor = leerSesion()?.rol === 'VENDEDOR';
+
   return (
     <footer className="pie-sitio">
 
@@ -21,15 +26,18 @@ function Footer() {
             <p>Lunes a viernes · 09:00 a 18:00 hrs.</p>
           </section>
 
-          <section className="footer-columna col">
-            <h2>Navegación</h2>
+          {/* Anexo 1: al vendedor no se le muestran los accesos de la tienda */}
+          {!esVendedor && (
+            <section className="footer-columna col">
+              <h2>Navegación</h2>
 
-            <ul>
-              <li><Link to="/">Inicio</Link></li>
-              <li><Link to="/catalogo">Catálogo</Link></li>
-              <li><Link to="/servicios">Servicios</Link></li>
-            </ul>
-          </section>
+              <ul>
+                <li><Link to="/">Inicio</Link></li>
+                <li><Link to="/catalogo">Catálogo</Link></li>
+                <li><Link to="/servicios">Servicios</Link></li>
+              </ul>
+            </section>
+          )}
 
           <section className="footer-columna col">
             <h2>Servicios</h2>

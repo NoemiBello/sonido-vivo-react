@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { validarRegistro } from "../utils/validaciones";
-import { guardarUsuarios, leerUsuarios } from "../utils/storage";
-
-const servicioUsuariosReal = {
-  guardarUsuarios,
-  leerUsuarios,
-};
+import { guardarSesion } from "../utils/storage";
+import { registrar as registrarCuenta } from "../services/authService";
+import { crearUsuario } from "../services/usuariosService";
 
 const formularioInicial = {
   nombre: "",
@@ -16,47 +13,57 @@ const formularioInicial = {
   confirmarPassword: "",
 };
 
-export default function Registro({
-  servicioUsuarios = servicioUsuariosReal,
-}) {
+export default function Registro() {
   const navigate = useNavigate();
   const [formulario, setFormulario] = useState(formularioInicial);
   const [errores, setErrores] = useState({});
+  const [errorEnvio, setErrorEnvio] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   function cambiar(evento) {
     const { name, value } = evento.target;
     setFormulario({ ...formulario, [name]: value });
   }
 
-  function registrar(evento) {
+  async function registrar(evento) {
     evento.preventDefault();
 
-    const usuarios = servicioUsuarios.leerUsuarios();
-    const nuevosErrores = validarRegistro(formulario, usuarios);
+    const nuevosErrores = validarRegistro(formulario);
 
     setErrores(nuevosErrores);
+    setErrorEnvio("");
 
     if (Object.keys(nuevosErrores).length > 0) {
       return;
     }
 
-    const nuevoUsuario = {
-      id: Date.now(),
-      nombre: formulario.nombre.trim(),
-      apellido: formulario.apellido.trim(),
-      correo: formulario.correo.trim().toLowerCase(),
-      password: formulario.password,
-      rol: "cliente",
-      activo: true,
-    };
+    setEnviando(true);
 
-    servicioUsuarios.guardarUsuarios([...usuarios, nuevoUsuario]);
+    try {
+      // Paso 1: authservice crea la cuenta y devuelve el token.
+      const sesion = await registrarCuenta({
+        correo: formulario.correo.trim().toLowerCase(),
+        password: formulario.password,
+      });
 
-    navigate("/login", {
-      state: {
-        mensaje: "Cuenta creada. Ya puedes iniciar sesión.",
-      },
-    });
+      guardarSesion(sesion);
+
+      // Paso 2: usuariosservice guarda los datos personales con ese token.
+      // Si falla, la cuenta ya existe: los datos se completan en el perfil.
+      const ficha = await crearUsuario({
+        correo: sesion.correo,
+        nombre: formulario.nombre.trim(),
+        apellido: formulario.apellido.trim(),
+      }).catch(() => null);
+
+      guardarSesion({ ...sesion, id: ficha?.id });
+
+      navigate("/perfil");
+    } catch (error) {
+      setErrorEnvio(error.message);
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -138,9 +145,15 @@ export default function Registro({
           <small className="text-danger">{errores.confirmarPassword}</small>
         </div>
 
+        {errorEnvio && (
+          <div className="col-12">
+            <p className="alert alert-danger mb-0" role="alert">{errorEnvio}</p>
+          </div>
+        )}
+
         <div className="col-12">
-          <button className="btn btn-info" type="submit">
-            Crear cuenta
+          <button className="btn btn-info" type="submit" disabled={enviando}>
+            {enviando ? "Creando cuenta..." : "Crear cuenta"}
           </button>
         </div>
       </form>

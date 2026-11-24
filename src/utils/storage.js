@@ -1,9 +1,11 @@
-import { usuariosIniciales } from "../data/usuarios";
 import { pedidosIniciales } from "../data/pedidos";
 
-const CLAVE_USUARIOS = "svReactUsuarios";
 const CLAVE_PEDIDOS = "svReactPedidos";
-const CLAVE_SESION = "svReactSesion";
+
+// La sesión usa sessionStorage (guía 17): se mantiene al recargar la página
+// y se borra al cerrar la pestaña. Nunca se guarda la contraseña.
+const CLAVE_TOKEN = "token";
+const CLAVE_USUARIO = "usuario";
 
 function leerLista(clave, inicial) {
   try {
@@ -14,14 +16,6 @@ function leerLista(clave, inicial) {
   }
 }
 
-export function leerUsuarios() {
-  return leerLista(CLAVE_USUARIOS, usuariosIniciales);
-}
-
-export function guardarUsuarios(usuarios) {
-  localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(usuarios));
-}
-
 export function leerPedidos() {
   return leerLista(CLAVE_PEDIDOS, pedidosIniciales);
 }
@@ -30,34 +24,35 @@ export function guardarPedidos(pedidos) {
   localStorage.setItem(CLAVE_PEDIDOS, JSON.stringify(pedidos));
 }
 
-export function guardarSesion(usuario) {
-  const sesion = {
-    id: usuario.id,
-    nombre: usuario.nombre,
-    apellido: usuario.apellido,
-    correo: usuario.correo,
-    rol: usuario.rol,
-  };
+// Guarda el JWT y los datos que necesita la interfaz.
+// "inicio" permite saber cuánto tiempo lleva emitido el token.
+export function guardarSesion(sesion) {
+  sessionStorage.setItem(CLAVE_TOKEN, sesion.token);
 
-  localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
-
-  // Mantiene compatibilidad con el panel vendedor existente.
-  localStorage.setItem("sesionActiva", "true");
-  localStorage.setItem("tipoUsuario", usuario.rol);
-  localStorage.setItem("correoUsuario", usuario.correo);
+  sessionStorage.setItem(
+    CLAVE_USUARIO,
+    JSON.stringify({
+      id: sesion.id ?? null,
+      correo: sesion.correo,
+      rol: sesion.rol,
+      inicio: Date.now(),
+    }),
+  );
 }
 
 export function leerSesion() {
   try {
-    return JSON.parse(localStorage.getItem(CLAVE_SESION));
+    return JSON.parse(sessionStorage.getItem(CLAVE_USUARIO));
   } catch {
     return null;
   }
 }
 
+export function leerToken() {
+  return sessionStorage.getItem(CLAVE_TOKEN);
+}
+
 export function cerrarSesion() {
-  localStorage.removeItem(CLAVE_SESION);
-  localStorage.removeItem("sesionActiva");
-  localStorage.removeItem("tipoUsuario");
-  localStorage.removeItem("correoUsuario");
+  sessionStorage.removeItem(CLAVE_TOKEN);
+  sessionStorage.removeItem(CLAVE_USUARIO);
 }

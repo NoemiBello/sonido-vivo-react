@@ -26,8 +26,8 @@ export function validarProducto(producto, productos, categorias) {
     return "La descripción admite hasta 500 caracteres.";
   }
 
-  if (!Number.isFinite(producto.precio) || producto.precio < 0) {
-    return "El precio debe ser un número positivo o cero.";
+  if (!Number.isFinite(producto.precio) || producto.precio <= 0) {
+    return "El precio debe ser un número mayor que cero.";
   }
 
   const stockValido = [
@@ -40,7 +40,7 @@ export function validarProducto(producto, productos, categorias) {
   }
 
   if (
-    !Number.isFinite(producto.descuento) ||
+    !Number.isInteger(producto.descuento) ||
     producto.descuento < 0 ||
     producto.descuento > 100
   ) {

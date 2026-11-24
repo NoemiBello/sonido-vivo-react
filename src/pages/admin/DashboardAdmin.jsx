@@ -1,10 +1,25 @@
+import { useEffect, useState } from "react";
 import { useTienda } from "../../context/TiendaContext";
-import { leerPedidos, leerUsuarios } from "../../utils/storage";
+import { listarCuentas } from "../../services/authService";
+import { leerPedidos } from "../../utils/storage";
 
 export default function DashboardAdmin() {
   const { productos, categorias } = useTienda();
-  const usuarios = leerUsuarios();
   const pedidos = leerPedidos();
+  const [cuentas, setCuentas] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function cargar() {
+      try {
+        setCuentas(await listarCuentas());
+      } catch (e) {
+        setError(e.message);
+      }
+    }
+
+    cargar();
+  }, []);
 
   const ventas = pedidos
     .filter((pedido) => pedido.estado === "Entregado")
@@ -13,13 +28,15 @@ export default function DashboardAdmin() {
   const resumen = [
     { titulo: "Productos", valor: productos.length },
     { titulo: "Categorías", valor: categorias.length },
-    { titulo: "Usuarios", valor: usuarios.length },
+    { titulo: "Usuarios", valor: cuentas.length },
     { titulo: "Pedidos", valor: pedidos.length },
   ];
 
   return (
     <>
       <h2 className="h3">Resumen general</h2>
+
+      {error && <p className="alert alert-danger" role="alert">{error}</p>}
 
       <div className="row g-3 my-2">
         {resumen.map((item) => (

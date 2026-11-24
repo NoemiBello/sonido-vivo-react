@@ -8,24 +8,16 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import {
-  guardarSesion,
-  leerUsuarios,
-} from "../utils/storage";
+import { login } from "../services/authService";
+import { buscarUsuarioPorCorreo } from "../services/usuariosService";
+import { guardarSesion } from "../utils/storage";
+import { rutaPorRol } from "../utils/roles";
 
 import {
   validarLogin,
 } from "../utils/validaciones";
 
-const servicioUsuariosReal = {
-  guardarSesion,
-  leerUsuarios,
-};
-
-export default function Login({
-  servicioUsuarios =
-    servicioUsuariosReal,
-}) {
+export default function Login() {
   const navigate =
     useNavigate();
 
@@ -52,7 +44,12 @@ export default function Login({
     setErrorCredenciales,
   ] = useState("");
 
-  function ingresar(evento) {
+  const [
+    enviando,
+    setEnviando,
+  ] = useState(false);
+
+  async function ingresar(evento) {
     evento.preventDefault();
 
     const nuevosErrores =
@@ -77,52 +74,33 @@ export default function Login({
       return;
     }
 
-    const usuario =
-      servicioUsuarios
-        .leerUsuarios()
-        .find(
-          (item) =>
-            item.correo.toLowerCase() ===
-              correo
-                .trim()
-                .toLowerCase() &&
-            item.password ===
-              password &&
-            item.activo,
-        );
+    setEnviando(true);
 
-    if (!usuario) {
-      setErrorCredenciales(
-        "Correo o contraseña incorrectos.",
-      );
+    try {
+      const sesion = await login({
+        correo: correo.trim(),
+        password,
+      });
 
-      return;
+      // Primero se guarda el token: la siguiente petición ya lo necesita.
+      guardarSesion(sesion);
+
+      // La ficha es opcional: si no se puede leer, la sesión igual es válida.
+      const ficha = await buscarUsuarioPorCorreo(
+        sesion.correo,
+      ).catch(() => null);
+
+      guardarSesion({
+        ...sesion,
+        id: ficha?.id,
+      });
+
+      navigate(rutaPorRol(sesion.rol));
+    } catch (error) {
+      setErrorCredenciales(error.message);
+    } finally {
+      setEnviando(false);
     }
-
-    servicioUsuarios.guardarSesion(
-      usuario,
-    );
-
-    if (
-      usuario.rol ===
-      "administrador"
-    ) {
-      navigate("/admin");
-      return;
-    }
-
-    if (
-      usuario.rol ===
-      "vendedor"
-    ) {
-      navigate(
-        "/vendedor",
-      );
-
-      return;
-    }
-
-    navigate("/perfil");
   }
 
   function cambiarCorreo(
@@ -184,12 +162,6 @@ export default function Login({
           }
         </p>
       )}
-
-      <p className="text-secondary">
-        Inicio de sesión
-        simulado para esta
-        etapa frontend.
-      </p>
 
       <form
         className="row g-3 mt-2"
@@ -293,8 +265,11 @@ export default function Login({
           <button
             className="btn btn-info"
             type="submit"
+            disabled={enviando}
           >
-            Ingresar
+            {enviando
+              ? "Ingresando..."
+              : "Ingresar"}
           </button>
 
           <Link

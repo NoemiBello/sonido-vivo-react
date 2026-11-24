@@ -1,20 +1,73 @@
-import { useState } from "react";
-import { guardarUsuarios, leerUsuarios } from "../../utils/storage";
+import { useEffect, useState } from "react";
+import {
+  actualizarCuenta,
+  crearCuenta,
+  desactivarCuenta,
+  listarCuentas,
+} from "../../services/authService";
+import {
+  actualizarUsuario,
+  crearUsuario,
+  listarUsuarios,
+} from "../../services/usuariosService";
+import { leerSesion } from "../../utils/storage";
+import { nombreRol } from "../../utils/roles";
 
 const formularioInicial = {
   id: null,
+  fichaId: null,
   nombre: "",
   apellido: "",
   correo: "",
-  password: "123456",
-  rol: "cliente",
+  password: "",
+  telefono: "",
+  direccion: "",
+  rol: "USER",
   activo: true,
 };
 
+// authservice guarda la cuenta (correo, rol, activo) y usuariosservice los
+// datos personales. Se unen por el correo, que es el dato en común.
+async function cargarUsuarios() {
+  const cuentas = await listarCuentas();
+  const fichas = await listarUsuarios();
+
+  return cuentas.map((cuenta) => {
+    const ficha = fichas.find((item) => item.correo === cuenta.correo);
+
+    return {
+      ...cuenta,
+      fichaId: ficha?.id ?? null,
+      nombre: ficha?.nombre ?? "",
+      apellido: ficha?.apellido ?? "",
+      telefono: ficha?.telefono ?? "",
+      direccion: ficha?.direccion ?? "",
+    };
+  });
+}
+
 export default function AdminUsuarios() {
-  const [usuarios, setUsuarios] = useState(() => leerUsuarios());
+  const [usuarios, setUsuarios] = useState([]);
   const [formulario, setFormulario] = useState(formularioInicial);
+  const [cargando, setCargando] = useState(true);
+  const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
+
+  const sesion = leerSesion();
+
+  useEffect(() => {
+    async function cargar() {
+      try {
+        setUsuarios(await cargarUsuarios());
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setCargando(false);
+      }
+    }
+
+    cargar();
+  }, []);
 
   function cambiar(evento) {
     const { name, value, type, checked } = evento.target;
@@ -24,7 +77,7 @@ export default function AdminUsuarios() {
     });
   }
 
-  function guardar(evento) {
+  async function guardar(evento) {
     evento.preventDefault();
 
     const correo = formulario.correo.trim().toLowerCase();
@@ -34,45 +87,85 @@ export default function AdminUsuarios() {
       return;
     }
 
-    const correoRepetido = usuarios.some(
-      (usuario) =>
-        usuario.id !== formulario.id &&
-        usuario.correo.toLowerCase() === correo,
-    );
-
-    if (correoRepetido) {
-      setError("Ya existe un usuario con ese correo.");
+    if (!formulario.id && formulario.password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
 
-    const usuario = {
-      ...formulario,
-      id: formulario.id || Date.now(),
+    const ficha = {
+      correo,
       nombre: formulario.nombre.trim(),
       apellido: formulario.apellido.trim(),
-      correo,
+      telefono: formulario.telefono.trim(),
+      direccion: formulario.direccion.trim(),
     };
 
-    const nuevaLista = formulario.id
-      ? usuarios.map((item) => item.id === usuario.id ? usuario : item)
-      : [...usuarios, usuario];
-
-    setUsuarios(nuevaLista);
-    guardarUsuarios(nuevaLista);
-    setFormulario(formularioInicial);
+    setGuardando(true);
     setError("");
+
+    try {
+      if (formulario.id) {
+        await actualizarCuenta(formulario.id, {
+          rol: formulario.rol,
+          activo: formulario.activo,
+        });
+      } else {
+        await crearCuenta({
+          correo,
+          password: formulario.password,
+          rol: formulario.rol,
+        });
+      }
+
+      if (formulario.fichaId) {
+        await actualizarUsuario(formulario.fichaId, ficha);
+      } else {
+        await crearUsuario(ficha);
+      }
+
+      setFormulario(formularioInicial);
+      setUsuarios(await cargarUsuarios());
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function desactivar(usuario) {
+    if (!window.confirm(`¿Desactivar la cuenta ${usuario.correo}?`)) {
+      return;
+    }
+
+    setError("");
+
+    try {
+      await desactivarCuenta(usuario.id);
+
+      setUsuarios(
+        usuarios.map((item) =>
+          item.id === usuario.id ? { ...item, activo: false } : item,
+        ),
+      );
+    } catch (e) {
+      setError(e.message);
+    }
   }
 
   function editar(usuario) {
-    setFormulario(usuario);
+    setFormulario({ ...formularioInicial, ...usuario });
     setError("");
+  }
+
+  if (cargando) {
+    return <p>Cargando usuarios...</p>;
   }
 
   return (
     <>
       <h2 className="h3">Administrar usuarios</h2>
 
-      <form className="row g-3 my-3" onSubmit={guardar} data-testid="form-usuarios">
+      <form className="row g-3 my-3" onSubmit={guardar} data-testid="form-usuarios" noValidate>
         <div className="col-12 col-md-6">
           <label className="form-label" htmlFor="admin-nombre">Nombre</label>
           <input className="form-control" id="admin-nombre" name="nombre" value={formulario.nombre} onChange={cambiar} />
@@ -85,29 +178,49 @@ export default function AdminUsuarios() {
 
         <div className="col-12 col-md-6">
           <label className="form-label" htmlFor="admin-correo">Correo</label>
-          <input className="form-control" id="admin-correo" name="correo" type="email" value={formulario.correo} onChange={cambiar} />
+          {/* El correo une la cuenta con sus datos: no se cambia al editar */}
+          <input className="form-control" id="admin-correo" name="correo" type="email" value={formulario.correo} onChange={cambiar} disabled={Boolean(formulario.id)} />
         </div>
+
+        {!formulario.id && (
+          <div className="col-12 col-md-6">
+            <label className="form-label" htmlFor="admin-password">Contraseña</label>
+            <input className="form-control" id="admin-password" name="password" type="password" value={formulario.password} onChange={cambiar} />
+          </div>
+        )}
 
         <div className="col-12 col-md-6">
           <label className="form-label" htmlFor="admin-rol">Rol</label>
           <select className="form-select" id="admin-rol" name="rol" value={formulario.rol} onChange={cambiar}>
-            <option value="cliente">Cliente</option>
-            <option value="vendedor">Vendedor</option>
-            <option value="administrador">Administrador</option>
+            <option value="USER">Cliente</option>
+            <option value="VENDEDOR">Vendedor</option>
+            <option value="ADMIN">Administrador</option>
           </select>
         </div>
 
-        <div className="col-12">
-          <label className="form-check">
-            <input className="form-check-input" name="activo" type="checkbox" checked={formulario.activo} onChange={cambiar} />
-            <span className="form-check-label">Usuario activo</span>
-          </label>
+        <div className="col-12 col-md-6">
+          <label className="form-label" htmlFor="admin-telefono">Teléfono</label>
+          <input className="form-control" id="admin-telefono" name="telefono" value={formulario.telefono} onChange={cambiar} />
         </div>
+
+        <div className="col-12 col-md-6">
+          <label className="form-label" htmlFor="admin-direccion">Dirección</label>
+          <input className="form-control" id="admin-direccion" name="direccion" value={formulario.direccion} onChange={cambiar} />
+        </div>
+
+        {formulario.id && (
+          <div className="col-12">
+            <label className="form-check">
+              <input className="form-check-input" name="activo" type="checkbox" checked={formulario.activo} onChange={cambiar} />
+              <span className="form-check-label">Usuario activo</span>
+            </label>
+          </div>
+        )}
 
         <p className="text-danger" role="alert">{error}</p>
 
         <div className="col-12 d-flex gap-2">
-          <button className="btn btn-info" type="submit">
+          <button className="btn btn-info" type="submit" disabled={guardando}>
             {formulario.id ? "Guardar cambios" : "Crear usuario"}
           </button>
 
@@ -135,12 +248,21 @@ export default function AdminUsuarios() {
               <tr key={usuario.id}>
                 <td>{usuario.nombre} {usuario.apellido}</td>
                 <td>{usuario.correo}</td>
-                <td>{usuario.rol}</td>
+                <td>{nombreRol(usuario.rol)}</td>
                 <td>{usuario.activo ? "Activo" : "Inactivo"}</td>
                 <td>
-                  <button className="btn btn-sm btn-outline-info" type="button" onClick={() => editar(usuario)}>
-                    Editar
-                  </button>
+                  <div className="d-flex flex-wrap gap-2">
+                    <button className="btn btn-sm btn-outline-info" type="button" onClick={() => editar(usuario)}>
+                      Editar
+                    </button>
+
+                    {/* Un administrador no puede desactivar su propia cuenta */}
+                    {usuario.activo && usuario.correo !== sesion?.correo && (
+                      <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => desactivar(usuario)}>
+                        Desactivar
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

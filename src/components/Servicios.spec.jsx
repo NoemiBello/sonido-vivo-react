@@ -1,16 +1,25 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Servicios from "./Servicios";
+import { crearSolicitud } from "../services/serviciosTecnicosService";
+
+vi.mock("../services/serviciosTecnicosService", () => ({
+  crearSolicitud: vi.fn(),
+}));
 
 describe("formulario de servicios", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("rechaza una solicitud con datos inválidos", async () => {
     const user = userEvent.setup();
 
     render(<Servicios />);
 
     await user.click(
-      screen.getByRole("button", { name: "Validar solicitud" }),
+      screen.getByRole("button", { name: "Enviar solicitud" }),
     );
 
     expect(
@@ -22,10 +31,13 @@ describe("formulario de servicios", () => {
     expect(
       screen.getByText("Selecciona un instrumento."),
     ).toBeInTheDocument();
+
+    expect(crearSolicitud).not.toHaveBeenCalled();
   });
 
-  it("acepta una solicitud con datos válidos", async () => {
+  it("envía una solicitud con datos válidos", async () => {
     const user = userEvent.setup();
+    crearSolicitud.mockResolvedValue({ id: 4, estado: "PENDIENTE" });
 
     render(<Servicios />);
 
@@ -61,11 +73,19 @@ describe("formulario de servicios", () => {
     );
 
     await user.click(
-      screen.getByRole("button", { name: "Validar solicitud" }),
+      screen.getByRole("button", { name: "Enviar solicitud" }),
     );
 
     expect(
-      screen.getByText("Solicitud validada correctamente."),
+      await screen.findByText("Solicitud N° 4 recibida. Estado: PENDIENTE."),
     ).toBeInTheDocument();
+
+    expect(crearSolicitud).toHaveBeenCalledWith({
+      nombre: "Manuel Rodríguez",
+      correo: "manuel@correo.cl",
+      telefono: "912345678",
+      instrumento: "guitarra-electrica",
+      descripcion: "La guitarra presenta ruido al tocar algunas cuerdas.",
+    });
   });
 });

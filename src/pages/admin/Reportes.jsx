@@ -1,8 +1,23 @@
-import { leerPedidos, leerUsuarios } from "../../utils/storage";
+import { useEffect, useState } from "react";
+import { listarCuentas } from "../../services/authService";
+import { leerPedidos } from "../../utils/storage";
 
 export default function Reportes() {
   const pedidos = leerPedidos();
-  const usuarios = leerUsuarios();
+  const [cuentas, setCuentas] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function cargar() {
+      try {
+        setCuentas(await listarCuentas());
+      } catch (e) {
+        setError(e.message);
+      }
+    }
+
+    cargar();
+  }, []);
 
   const entregados = pedidos.filter(
     (pedido) => pedido.estado === "Entregado",
@@ -13,8 +28,8 @@ export default function Reportes() {
     0,
   );
 
-  const clientesActivos = usuarios.filter(
-    (usuario) => usuario.rol === "cliente" && usuario.activo,
+  const clientesActivos = cuentas.filter(
+    (cuenta) => cuenta.rol === "USER" && cuenta.activo,
   ).length;
 
   const datos = [
@@ -27,6 +42,8 @@ export default function Reportes() {
   return (
     <>
       <h2 className="h3">Reportes administrativos</h2>
+
+      {error && <p className="alert alert-danger" role="alert">{error}</p>}
 
       <div className="row g-3 mt-2">
         {datos.map((dato) => (

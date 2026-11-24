@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 
 import Navegacion from "./components/Navegacion";
+import RutaProtegida from "./components/RutaProtegida";
 import Inicio from "./components/Inicio";
 import DetalleProducto from "./components/DetalleProducto";
 import Catalogo from "./components/Catalogo";
@@ -37,6 +38,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminPedidos from "./pages/admin/AdminPedidos";
+import AdminServicios from "./pages/admin/AdminServicios";
 import Reportes from "./pages/admin/Reportes";
 import EstilosGlobales from "./styles/EstilosGlobales";
 function Contenido() {
@@ -80,27 +82,36 @@ function Contenido() {
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/historial" element={<HistorialCompras />} />
+
+          {/* Cliente: perfil y compras. El administrador tiene acceso total. */}
+          <Route element={<RutaProtegida roles={["USER", "ADMIN"]} />}>
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/historial" element={<HistorialCompras />} />
+            <Route path="/checkout" element={<Checkout carrito={carritoActual} setCarrito={setCarrito} />} />
+          </Route>
 
           <Route path="/carrito" element={<Carrito carrito={carritoActual} setCarrito={setCarrito} />} />
-          <Route path="/checkout" element={<Checkout carrito={carritoActual} setCarrito={setCarrito} />} />
           <Route path="/compra-exitosa" element={<CompraExitosa />} />
           <Route path="/compra-fallida" element={<CompraFallida />} />
 
-          <Route path="/vendedor" element={<VendedorLayout />}>
-            <Route index element={<ListaProductos />} />
-            <Route path="stock-critico" element={<ListaProductos criticos />} />
-            <Route path="productos/nuevo" element={<FormularioProducto key="nuevo" />} />
-            <Route path="productos/:id/editar" element={<FormularioProducto />} />
-            <Route path="categorias" element={<AdminCategorias />} />
+          <Route element={<RutaProtegida roles={["VENDEDOR", "ADMIN"]} />}>
+            <Route path="/vendedor" element={<VendedorLayout />}>
+              <Route index element={<ListaProductos />} />
+              <Route path="stock-critico" element={<ListaProductos criticos />} />
+              <Route path="productos/nuevo" element={<FormularioProducto key="nuevo" />} />
+              <Route path="productos/:id/editar" element={<FormularioProducto />} />
+              <Route path="categorias" element={<AdminCategorias />} />
+            </Route>
           </Route>
 
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<DashboardAdmin />} />
-            <Route path="usuarios" element={<AdminUsuarios />} />
-            <Route path="pedidos" element={<AdminPedidos />} />
-            <Route path="reportes" element={<Reportes />} />
+          <Route element={<RutaProtegida roles={["ADMIN"]} />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<DashboardAdmin />} />
+              <Route path="usuarios" element={<AdminUsuarios />} />
+              <Route path="pedidos" element={<AdminPedidos />} />
+              <Route path="servicios" element={<AdminServicios />} />
+              <Route path="reportes" element={<Reportes />} />
+            </Route>
           </Route>
 
           <Route

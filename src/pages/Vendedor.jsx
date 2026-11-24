@@ -2,13 +2,13 @@ import { useState } from "react";
 import {
   Link,
   NavLink,
-  Navigate,
   Outlet,
   useNavigate,
   useParams,
 } from "react-router-dom";
 
 import { useTienda } from "../context/TiendaContext";
+import { cerrarSesion, leerSesion } from "../utils/storage";
 import {
   esCritico,
   moneda,
@@ -94,21 +94,10 @@ export function AccesoVendedor() {
 export function VendedorLayout() {
   const navigate = useNavigate();
 
-  const sesionActiva =
-    localStorage.getItem("sesionActiva") === "true";
-
-  const esVendedor =
-    localStorage.getItem("tipoUsuario") === "vendedor";
-
-  if (!sesionActiva || !esVendedor) {
-    return <Navigate to="/login" replace />;
-  }
+  const sesion = leerSesion();
 
   function salir() {
-    localStorage.removeItem("sesionActiva");
-    localStorage.removeItem("tipoUsuario");
-    localStorage.removeItem("correoUsuario");
-
+    cerrarSesion();
     navigate("/login");
   }
 
@@ -122,7 +111,7 @@ export function VendedorLayout() {
       <h1 className="mb-3">Panel del vendedor</h1>
 
       <p className="text-body-secondary">
-        {localStorage.getItem("correoUsuario")}
+        {sesion?.correo}
       </p>
 
       <nav

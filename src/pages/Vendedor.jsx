@@ -3,11 +3,17 @@ import { Link, NavLink, Outlet, Navigate, useNavigate, useParams } from "react-r
 import { useTienda } from "../context/TiendaContext";
 import { esCritico, moneda, validarProducto } from "../utils/productos";
 import { obtenerToken, guardarToken, cerrarAcceso, validarAcceso } from "../services/api";
+import { cerrarSesion, leerSesion } from "../utils/storage";
 
 export function AccesoVendedor() { return <Navigate to="/vendedor" replace />; }
 
 export function VendedorLayout() {
-  const [sesion, setSesion] = useState(null);
+  const navigate = useNavigate();
+  // Si ya inició sesión en /login no se vuelve a pedir el token.
+  const sesionLogin = leerSesion();
+  const esVendedor = sesionLogin?.rol === "VENDEDOR";
+  const [sesionToken, setSesion] = useState(null);
+  const sesion = sesionToken || sesionLogin;
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [verificando, setVerificando] = useState(() => Boolean(obtenerToken()));
@@ -19,7 +25,7 @@ export function VendedorLayout() {
       setError("Vuelve a ingresar un token válido para continuar.");
     }
     window.addEventListener("sv-api-sesion", cerrar);
-    if (obtenerToken()) {
+    if (obtenerToken() && !leerSesion()) {
       validarAcceso().then((datos) => { if (activo) setSesion(datos); })
         .catch((error) => { if (activo) setError(error.message); })
         .finally(() => { if (activo) setVerificando(false); });
@@ -64,9 +70,10 @@ export function VendedorLayout() {
       <p className="text-body-secondary">{sesion.correo}</p>
       <nav className="nav nav-pills gap-2 my-4" aria-label="Administración del catálogo">
         <NavLink end to="/vendedor" className="nav-link">Productos</NavLink>
-        <NavLink to="/vendedor/categorias" className="nav-link">Categorías</NavLink>
-        <NavLink to="/vendedor/stock-critico" className="nav-link">Stock crítico</NavLink>
-        <button type="button" className="btn btn-outline-danger ms-md-auto" onClick={() => { cerrarAcceso(); setError(""); }}>Cerrar acceso</button>
+        {/* Anexo 1: el vendedor solo visualiza productos y órdenes */}
+        {!esVendedor && <NavLink to="/vendedor/categorias" className="nav-link">Categorías</NavLink>}
+        {!esVendedor && <NavLink to="/vendedor/stock-critico" className="nav-link">Stock crítico</NavLink>}
+        <button type="button" className="btn btn-outline-danger ms-md-auto" onClick={() => { cerrarAcceso(); cerrarSesion(); navigate("/login"); }}>Cerrar sesión</button>
       </nav>
       <Outlet />
     </section>
@@ -76,6 +83,8 @@ export function VendedorLayout() {
 // LISTADO DE PRODUCTOS Y STOCK CRÍTICO
 
 export function ListaProductos({ criticos = false }) {
+  const esVendedor = leerSesion()?.rol === "VENDEDOR";
+
   const {
     productos,
     eliminarProducto,
@@ -165,15 +174,19 @@ export function ListaProductos({ criticos = false }) {
         <h2 className="h4 mb-0">
           {criticos
             ? "Productos con stock crítico"
-            : "Administrar productos"}
+            : esVendedor
+              ? "Lista de productos"
+              : "Administrar productos"}
         </h2>
 
-        <Link
-          className="btn btn-sonido"
-          to="/vendedor/productos/nuevo"
-        >
-          Crear producto
-        </Link>
+        {!esVendedor && (
+          <Link
+            className="btn btn-sonido"
+            to="/vendedor/productos/nuevo"
+          >
+            Crear producto
+          </Link>
+        )}
       </div>
 
       <div className="mb-3">
@@ -256,6 +269,14 @@ export function ListaProductos({ criticos = false }) {
                 </td>
 
                 <td>
+                  {esVendedor ? (
+                    <Link
+                      className="btn btn-sm btn-outline-info"
+                      to={`/vendedor/productos/${producto.id}`}
+                    >
+                      Ver detalle
+                    </Link>
+                  ) : (
                   <div className="d-flex flex-wrap gap-2">
                     <Link
                       className="btn btn-sm btn-outline-info"
@@ -273,6 +294,7 @@ export function ListaProductos({ criticos = false }) {
                       Eliminar
                     </button>
                   </div>
+                  )}
                 </td>
               </tr>
             ))}

@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  guardarPedidos,
-  leerPedidos,
-  leerSesion,
+    guardarPedidos,
+    leerPedidos,
+    leerSesion,
 } from "../utils/storage";
 
 function Checkout({ carrito, setCarrito }) {
@@ -11,59 +12,58 @@ function Checkout({ carrito, setCarrito }) {
     const [tipoEntrega, setTipoEntrega] = useState("");
 
     function confirmarCompra(evento) {
-  evento.preventDefault();
+        evento.preventDefault();
 
-  if (carrito.length === 0) {
-    alert(
-      "Debes agregar productos al carrito antes de comprar.",
-    );
-    return;
-  }
+        if (carrito.length === 0) {
+            alert(
+                "Debes agregar productos al carrito antes de comprar."
+            );
+            return;
+        }
 
-  const datos = new FormData(
-    evento.currentTarget,
-  );
+        const datos = new FormData(evento.currentTarget);
 
-  const sesion = leerSesion();
-  const pedidos = leerPedidos();
+        const sesion = leerSesion();
+        const pedidos = leerPedidos();
 
-  const pedido = {
-    id: Date.now(),
-    usuarioId: sesion?.id ?? null,
-    fecha: new Date()
-      .toISOString()
-      .slice(0, 10),
-    estado: "En preparación",
-    tipoEntrega:
-      tipoEntrega === "despacho"
-        ? "Despacho"
-        : "Retiro en tienda",
-    direccion:
-      tipoEntrega === "despacho"
-        ? datos.get("direccion")
-        : "",
-    productos: carrito.map(
-      (producto) => ({
-        productoId: producto.id,
-        nombre: producto.nombre,
-        cantidad: producto.cantidad,
-        precio: producto.precio,
-      }),
-    ),
-    total,
-  };
+        const pedido = {
+            id: Date.now(),
+            usuarioId: sesion?.id ?? null,
+            nombre: datos.get("nombre"),
+            correo: datos.get("correo"),
+            fecha: new Date()
+                .toISOString()
+                .slice(0, 10),
+            estado: "En preparación",
+            tipoEntrega:
+                tipoEntrega === "despacho"
+                    ? "Despacho"
+                    : "Retiro en tienda",
+            direccion:
+                tipoEntrega === "despacho"
+                    ? datos.get("direccion")
+                    : "",
+            productos: carrito.map((producto) => ({
+                productoId: producto.id,
+                nombre: producto.nombre,
+                cantidad: producto.cantidad,
+                precio: producto.precio,
+            })),
+            total,
+        };
 
-  guardarPedidos([
-    ...pedidos,
-    pedido,
-  ]);
+        guardarPedidos([
+            ...pedidos,
+            pedido,
+        ]);
 
-  setCarrito([]);
+        setCarrito([]);
 
-  navigate("/compra-exitosa", {
-    state: { pedido },
-  });
-}
+        navigate("/compra-exitosa", {
+            state: { pedido },
+        });
+    }
+
     const total = carrito.reduce(
         (acumulado, producto) =>
             acumulado + producto.precio * producto.cantidad,
@@ -142,9 +142,11 @@ function Checkout({ carrito, setCarrito }) {
                                     <option value="">
                                         Selecciona una opción
                                     </option>
+
                                     <option value="despacho">
                                         Despacho a domicilio
                                     </option>
+
                                     <option value="retiro">
                                         Retiro en tienda
                                     </option>
@@ -177,10 +179,13 @@ function Checkout({ carrito, setCarrito }) {
                             >
                                 Confirmar compra
                             </button>
+
                             <button
                                 type="button"
                                 className="btn btn-outline-danger w-100 mt-3"
-                                onClick={() => navigate("/compra-fallida")}
+                                onClick={() =>
+                                    navigate("/compra-fallida")
+                                }
                             >
                                 Simular compra fallida
                             </button>

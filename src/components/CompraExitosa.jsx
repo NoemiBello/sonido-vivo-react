@@ -55,12 +55,12 @@ function CompraExitosa() {
 
                 <p>
                   <strong>Tipo de entrega:</strong>{" "}
-                  {pedido.tipoEntrega === "despacho"
+                  {pedido.tipoEntrega === "Despacho"
                     ? "Despacho a domicilio"
                     : "Retiro en tienda"}
                 </p>
 
-                {pedido.tipoEntrega === "despacho" && (
+                {pedido.tipoEntrega === "Despacho" && (
                   <p>
                     <strong>Dirección:</strong> {pedido.direccion}
                   </p>
@@ -74,7 +74,7 @@ function CompraExitosa() {
 
                 {pedido.productos.map((producto) => (
                   <div
-                    key={producto.id}
+                    key={producto.productoId}
                     className="d-flex justify-content-between gap-3 mb-3"
                   >
                     <span>
@@ -94,7 +94,7 @@ function CompraExitosa() {
 
                 <div className="d-flex justify-content-between gap-3 mb-4">
                   <h3 className="h5">
-                    Total pagado (simulado)
+                    Total del pedido
                   </h3>
 
                   <strong className="precio">

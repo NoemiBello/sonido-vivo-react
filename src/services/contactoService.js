@@ -1,6 +1,6 @@
 const API_URL =
   import.meta.env.VITE_CONTACTO_API_URL ||
-  "http://localhost:8089/api/contactos";
+  "http://localhost:8089/api/v1/contactos";
 
 export async function crearContacto(datos) {
   const respuesta = await fetch(API_URL, {

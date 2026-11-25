@@ -39,7 +39,7 @@ describe("comunicación con las tres APIs", () => {
       .mockResolvedValueOnce(respuesta({ id: 9, productoId: 3 }))
       .mockResolvedValueOnce(respuesta({ id: 9, stock: 7, stockCritico: 2 }));
     await guardarProducto({ id: 3, stock: 7, stockCritico: 2 });
-    expect(fetch.mock.calls[2][0]).toBe("http://localhost:8086/api/inventario/9");
+    expect(fetch.mock.calls[2][0]).toBe("http://localhost:8086/api/v1/inventario/9");
     expect(fetch.mock.calls[2][1].method).toBe("PUT");
   });
 
@@ -51,7 +51,7 @@ describe("comunicación con las tres APIs", () => {
   it("verifica el acceso administrativo en el backend, sin guardar el token antes", async () => {
     fetch.mockResolvedValueOnce(respuesta({ correo: "admin@example.com", rol: "ADMIN" }));
     await expect(validarAcceso("jwt-candidato")).resolves.toMatchObject({ rol: "ADMIN" });
-    expect(fetch.mock.calls[0][0]).toBe("http://localhost:8084/api/productos/acceso");
+    expect(fetch.mock.calls[0][0]).toBe("http://localhost:8084/api/v1/productos/acceso");
     expect(fetch.mock.calls[0][1].headers.Authorization).toBe("Bearer jwt-candidato");
     expect(sessionStorage.getItem("svApiToken")).toBeNull();
   });

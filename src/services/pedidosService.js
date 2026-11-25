@@ -1,7 +1,7 @@
 import { request } from "./request";
 
 const API_URL =
-  import.meta.env.VITE_PEDIDOS_API_URL || "http://localhost:8087/api/pedidos";
+  import.meta.env.VITE_PEDIDOS_API_URL || "http://localhost:8087/api/v1/pedidos";
 
 // Cliente: confirma su compra y consulta su historial
 export const crearPedido = (datos) =>

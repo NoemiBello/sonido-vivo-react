@@ -70,6 +70,7 @@ export function VendedorLayout() {
       <p className="text-body-secondary">{sesion.correo}</p>
       <nav className="nav nav-pills gap-2 my-4" aria-label="Administración del catálogo">
         <NavLink end to="/vendedor" className="nav-link">Productos</NavLink>
+        <NavLink to="/vendedor/ordenes" className="nav-link">Órdenes</NavLink>
         {/* Anexo 1: el vendedor solo visualiza productos y órdenes */}
         {!esVendedor && <NavLink to="/vendedor/categorias" className="nav-link">Categorías</NavLink>}
         {!esVendedor && <NavLink to="/vendedor/stock-critico" className="nav-link">Stock crítico</NavLink>}

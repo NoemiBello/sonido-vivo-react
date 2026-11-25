@@ -72,9 +72,21 @@ describe("llamadas a la API", () => {
     });
 
     expect(await mensajeDeError()).toEqual(
-      "Tu sesión expiró o no tienes permiso para esta acción.",
+      "Tu sesión expiró. Vuelve a iniciar sesión.",
     );
     expect(cerrarSesion).toHaveBeenCalledTimes(1);
+  });
+
+  it("avisa la falta de permiso sin cerrar la sesión", async () => {
+    leerToken.mockReturnValue("abc");
+    fetchSimulado.mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ error: "Forbidden" }),
+    });
+
+    expect(await mensajeDeError()).toEqual("No tienes permiso para esta acción.");
+    expect(cerrarSesion).not.toHaveBeenCalled();
   });
 
   it("informa el código en otros errores", async () => {

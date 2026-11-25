@@ -19,11 +19,15 @@ export async function request(url, opciones = {}) {
   return respuesta.status === 204 ? null : respuesta.json();
 }
 
-// El backend responde { "error": "mensaje" }. Los 401 y 403 de Spring Security
-// llegan sin ese cuerpo: el token ya no sirve, así que se cierra la sesión.
+// El backend responde { "error": "mensaje" }. Un 401 de Spring Security llega
+// sin cuerpo: el token ya no sirve, así que se cierra la sesión.
 async function leerMensaje(respuesta) {
   try {
     const datos = await respuesta.json();
+
+    if (datos.error === "Forbidden") {
+      return "No tienes permiso para esta acción.";
+    }
 
     if (datos.error) {
       return datos.error;
@@ -32,9 +36,9 @@ async function leerMensaje(respuesta) {
     // La respuesta no traía JSON: se usa uno de los mensajes siguientes.
   }
 
-  if (respuesta.status === 401 || respuesta.status === 403) {
+  if (respuesta.status === 401) {
     cerrarSesion();
-    return "Tu sesión expiró o no tienes permiso para esta acción.";
+    return "Tu sesión expiró. Vuelve a iniciar sesión.";
   }
 
   return `Solicitud rechazada: ${respuesta.status}`;

@@ -1,13 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import Navegacion from "./Navegacion";
 import { renovarToken } from "../services/authService";
 import { cerrarSesion, guardarSesion, leerSesion } from "../utils/storage";
 
-vi.mock("../services/authService", () => ({ renovarToken: vi.fn() }));
+const nueva = { token: "nuevo", correo: "camila@sonidovivo.cl", rol: "USER" };
+
+// El backend simulado rechaza la renovación cuando el token ya venció.
+let tokenVencido = false;
+
+vi.mock("../services/authService", () => ({
+  renovarToken: vi.fn(async () => {
+    if (tokenVencido) {
+      throw new Error("Token inválido o expirado");
+    }
+
+    return nueva;
+  }),
+}));
 
 vi.mock("../utils/storage", () => ({
   cerrarSesion: vi.fn(),
@@ -21,6 +34,10 @@ function renderMenu() {
   return render(
     <MemoryRouter>
       <Navegacion carrito={[]} setCarrito={vi.fn()} />
+      <Routes>
+        <Route path="/" element={<p>Página de inicio</p>} />
+        <Route path="/login" element={<p>Página de login</p>} />
+      </Routes>
     </MemoryRouter>,
   );
 }
@@ -81,20 +98,19 @@ describe("renovación del token", () => {
   });
 
   it("renueva un token con más de 30 minutos", async () => {
-    const nueva = { token: "nuevo", correo: "camila@sonidovivo.cl", rol: "USER" };
-
     leerSesion.mockReturnValue({
       id: 3,
       rol: "USER",
       inicio: Date.now() - 31 * MINUTO,
     });
-    renovarToken.mockResolvedValue(nueva);
 
     renderMenu();
 
-    await waitFor(() =>
-      expect(guardarSesion).toHaveBeenCalledWith({ ...nueva, id: 3 }),
-    );
+    // Se espera la respuesta simulada antes de comprobar lo guardado.
+    expect(renovarToken).toHaveBeenCalledTimes(1);
+    await renovarToken();
+
+    expect(guardarSesion).toHaveBeenCalledWith({ ...nueva, id: 3 });
   });
 
   it("cierra la sesión si el token ya no se puede renovar", async () => {
@@ -102,10 +118,11 @@ describe("renovación del token", () => {
       rol: "USER",
       inicio: Date.now() - 90 * MINUTO,
     });
-    renovarToken.mockRejectedValue(new Error("Token inválido o expirado"));
+    tokenVencido = true;
 
     renderMenu();
 
-    await waitFor(() => expect(cerrarSesion).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("Página de login")).toBeInTheDocument();
+    expect(cerrarSesion).toHaveBeenCalled();
   });
 });

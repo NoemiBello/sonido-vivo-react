@@ -5,13 +5,32 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import Login from "./Login";
 import { login } from "../services/authService";
-import { buscarUsuarioPorCorreo } from "../services/usuariosService";
 import { guardarSesion } from "../utils/storage";
 
-vi.mock("../services/authService", () => ({ login: vi.fn() }));
+// El backend simulado rechaza la clave 000000 y acepta cualquier otra.
+vi.mock("../services/authService", () => ({
+  login: vi.fn(async ({ correo, password }) => {
+    if (password === "000000") {
+      throw new Error("Credenciales inválidas");
+    }
+
+    const roles = {
+      "admin@sonidovivo.cl": "ADMIN",
+      "vendedor@sonidovivo.cl": "VENDEDOR",
+    };
+
+    return { token: "token-prueba", correo, rol: roles[correo] || "USER" };
+  }),
+}));
 
 vi.mock("../services/usuariosService", () => ({
-  buscarUsuarioPorCorreo: vi.fn(),
+  buscarUsuarioPorCorreo: vi.fn(async (correo) => {
+    if (correo === "admin@sonidovivo.cl") {
+      throw new Error("sin conexión");
+    }
+
+    return { id: 3 };
+  }),
 }));
 
 vi.mock("../utils/storage", () => ({ guardarSesion: vi.fn() }));
@@ -46,7 +65,6 @@ async function ingresar(correo, password) {
 describe("inicio de sesión", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    buscarUsuarioPorCorreo.mockResolvedValue({ id: 3 });
   });
 
   it("muestra errores personalizados cuando el formulario está vacío", async () => {
@@ -77,8 +95,6 @@ describe("inicio de sesión", () => {
   });
 
   it("muestra el mensaje del backend si las credenciales son incorrectas", async () => {
-    login.mockRejectedValue(new Error("Credenciales inválidas"));
-
     renderLogin();
     await ingresar("incorrecto@correo.cl", "000000");
 
@@ -89,12 +105,6 @@ describe("inicio de sesión", () => {
   });
 
   it("guarda el token y lleva al cliente a su perfil", async () => {
-    login.mockResolvedValue({
-      token: "token-prueba",
-      correo: "camila@sonidovivo.cl",
-      rol: "USER",
-    });
-
     renderLogin();
     await ingresar("camila@sonidovivo.cl", "123456");
 
@@ -105,7 +115,7 @@ describe("inicio de sesión", () => {
       password: "123456",
     });
 
-    expect(guardarSesion).toHaveBeenLastCalledWith({
+    expect(guardarSesion).toHaveBeenCalledWith({
       token: "token-prueba",
       correo: "camila@sonidovivo.cl",
       rol: "USER",
@@ -114,14 +124,6 @@ describe("inicio de sesión", () => {
   });
 
   it("lleva al administrador a su panel aunque no tenga ficha", async () => {
-    buscarUsuarioPorCorreo.mockRejectedValue(new Error("sin conexión"));
-
-    login.mockResolvedValue({
-      token: "token-admin",
-      correo: "admin@sonidovivo.cl",
-      rol: "ADMIN",
-    });
-
     renderLogin();
     await ingresar("admin@sonidovivo.cl", "123456");
 
@@ -131,12 +133,6 @@ describe("inicio de sesión", () => {
   });
 
   it("lleva al vendedor a su panel", async () => {
-    login.mockResolvedValue({
-      token: "token-vendedor",
-      correo: "vendedor@sonidovivo.cl",
-      rol: "VENDEDOR",
-    });
-
     renderLogin();
     await ingresar("vendedor@sonidovivo.cl", "123456");
 

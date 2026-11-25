@@ -1,17 +1,17 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-    guardarPedidos,
-    leerPedidos,
-    leerSesion,
-} from "../utils/storage";
+import { crearPedido } from "../services/pedidosService";
+import { buscarUsuarioPorCorreo } from "../services/usuariosService";
+import { leerSesion } from "../utils/storage";
 
 function Checkout({ carrito, setCarrito }) {
     const navigate = useNavigate();
     const [tipoEntrega, setTipoEntrega] = useState("");
+    const [error, setError] = useState("");
+    const [enviando, setEnviando] = useState(false);
 
-    function confirmarCompra(evento) {
+    async function confirmarCompra(evento) {
         evento.preventDefault();
 
         if (carrito.length === 0) {
@@ -23,18 +23,9 @@ function Checkout({ carrito, setCarrito }) {
 
         const datos = new FormData(evento.currentTarget);
 
-        const sesion = leerSesion();
-        const pedidos = leerPedidos();
-
         const pedido = {
-            id: Date.now(),
-            usuarioId: sesion?.id ?? null,
             nombre: datos.get("nombre"),
             correo: datos.get("correo"),
-            fecha: new Date()
-                .toISOString()
-                .slice(0, 10),
-            estado: "En preparación",
             tipoEntrega:
                 tipoEntrega === "despacho"
                     ? "Despacho"
@@ -52,16 +43,42 @@ function Checkout({ carrito, setCarrito }) {
             total,
         };
 
-        guardarPedidos([
-            ...pedidos,
-            pedido,
-        ]);
+        setError("");
+        setEnviando(true);
 
-        setCarrito([]);
+        try {
+            const usuario = await buscarUsuarioPorCorreo(
+                leerSesion().correo,
+            );
 
-        navigate("/compra-exitosa", {
-            state: { pedido },
-        });
+            if (!usuario) {
+                throw new Error(
+                    "Completa tus datos en el perfil antes de comprar.",
+                );
+            }
+
+            // El backend calcula los precios y descuenta el stock.
+            const creado = await crearPedido({
+                usuarioId: usuario.id,
+                nombreCliente: pedido.nombre,
+                direccionEntrega:
+                    pedido.direccion || "Retiro en tienda",
+                detalles: pedido.productos.map((producto) => ({
+                    productoId: producto.productoId,
+                    cantidad: producto.cantidad,
+                })),
+            });
+
+            setCarrito([]);
+
+            navigate("/compra-exitosa", {
+                state: { pedido: { ...pedido, total: creado.total } },
+            });
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setEnviando(false);
+        }
     }
 
     const total = carrito.reduce(
@@ -173,11 +190,18 @@ function Checkout({ carrito, setCarrito }) {
                                 </div>
                             )}
 
+                            {error && (
+                                <p className="alert alert-danger mt-3" role="alert">
+                                    {error}
+                                </p>
+                            )}
+
                             <button
                                 type="submit"
                                 className="btn boton w-100 mt-3"
+                                disabled={enviando}
                             >
-                                Confirmar compra
+                                {enviando ? "Enviando..." : "Confirmar compra"}
                             </button>
 
                             <button

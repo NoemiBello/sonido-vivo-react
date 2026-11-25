@@ -1,7 +1,7 @@
 const servidores = {
-  productos: import.meta.env.VITE_PRODUCTOS_API_URL || "http://localhost:8084/api/productos",
-  categorias: import.meta.env.VITE_CATEGORIAS_API_URL || "http://localhost:8085/api/categorias",
-  inventario: import.meta.env.VITE_INVENTARIO_API_URL || "http://localhost:8086/api/inventario",
+  productos: import.meta.env.VITE_PRODUCTOS_API_URL || "http://localhost:8084/api/v1/productos",
+  categorias: import.meta.env.VITE_CATEGORIAS_API_URL || "http://localhost:8085/api/v1/categorias",
+  inventario: import.meta.env.VITE_INVENTARIO_API_URL || "http://localhost:8086/api/v1/inventario",
 };
 
 export const obtenerToken = () => sessionStorage.getItem("svApiToken");

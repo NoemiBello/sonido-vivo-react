@@ -25,6 +25,7 @@ import {
   AdminCategorias,
 } from "./pages/Vendedor";
 
+import OrdenesVendedor from "./pages/OrdenesVendedor";
 import Nosotros from "./pages/Nosotros";
 import Blog from "./pages/Blog";
 import DetallePublicacion from "./pages/DetallePublicacion";
@@ -102,10 +103,16 @@ function Contenido() {
           <Route element={<RutaProtegida roles={["VENDEDOR", "ADMIN"]} />}>
             <Route path="/vendedor" element={<VendedorLayout />}>
               <Route index element={<ListaProductos />} />
-              <Route path="stock-critico" element={<ListaProductos criticos />} />
-              <Route path="productos/nuevo" element={<FormularioProducto key="nuevo" />} />
-              <Route path="productos/:id/editar" element={<FormularioProducto />} />
-              <Route path="categorias" element={<AdminCategorias />} />
+              <Route path="ordenes" element={<OrdenesVendedor />} />
+              <Route path="productos/:id" element={<DetalleProducto agregarAlCarrito={agregarAlCarrito} />} />
+
+              {/* Anexo 1: crear y editar es solo del administrador */}
+              <Route element={<RutaProtegida roles={["ADMIN"]} />}>
+                <Route path="stock-critico" element={<ListaProductos criticos />} />
+                <Route path="productos/nuevo" element={<FormularioProducto key="nuevo" />} />
+                <Route path="productos/:id/editar" element={<FormularioProducto />} />
+                <Route path="categorias" element={<AdminCategorias />} />
+              </Route>
             </Route>
           </Route>
 

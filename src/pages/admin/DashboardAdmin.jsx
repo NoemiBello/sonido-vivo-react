@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useTienda } from "../../context/TiendaContext";
 import { listarCuentas } from "../../services/authService";
-import { leerPedidos, leerSesion } from "../../utils/storage";
+import { listarPedidos } from "../../services/pedidosService";
+import { leerSesion } from "../../utils/storage";
 
 export default function DashboardAdmin() {
   const { productos, categorias } = useTienda();
-  const pedidos = leerPedidos();
+  const [pedidos, setPedidos] = useState([]);
   const [cuentas, setCuentas] = useState([]);
   const [error, setError] = useState("");
 
@@ -14,6 +15,7 @@ export default function DashboardAdmin() {
     async function cargar() {
       try {
         setCuentas(await listarCuentas());
+        setPedidos(await listarPedidos());
       } catch (e) {
         setError(e.message);
       }
@@ -23,7 +25,7 @@ export default function DashboardAdmin() {
   }, []);
 
   const ventas = pedidos
-    .filter((pedido) => pedido.estado === "Entregado")
+    .filter((pedido) => pedido.estado === "ENTREGADO")
     .reduce((total, pedido) => total + pedido.total, 0);
 
   const resumen = [

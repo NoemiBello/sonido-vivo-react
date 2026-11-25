@@ -2,6 +2,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useTienda } from "../context/TiendaContext";
 import { moneda, precioFinal } from "../utils/productos";
+import { leerSesion } from "../utils/storage";
 
 export default function DetalleProducto({
   agregarAlCarrito,
@@ -78,7 +79,7 @@ export default function DetalleProducto({
               Stock: {producto.stock} unidades
             </p>
 
-            <button
+            {leerSesion()?.rol !== "VENDEDOR" && <button
               type="button"
               className="btn boton w-100"
               disabled={producto.stock === 0}
@@ -92,7 +93,7 @@ export default function DetalleProducto({
               {producto.stock > 0
                 ? "Añadir al carrito"
                 : "Sin stock"}
-            </button>
+            </button>}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 
 const API_URL =
   import.meta.env.VITE_PUBLICACIONES_API_URL ||
-  "http://localhost:8088/api/publicaciones";
+  "http://localhost:8088/api/v1/publicaciones";
 
 // Obtener todas las publicaciones
 export async function listarPublicaciones() {

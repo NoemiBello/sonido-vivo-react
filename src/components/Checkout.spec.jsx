@@ -5,62 +5,98 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import Checkout from "./Checkout";
 import CompraExitosa from "./CompraExitosa";
-import { guardarPedidos, leerPedidos, leerSesion } from "../utils/storage";
+import { crearPedido } from "../services/pedidosService";
+import { leerSesion } from "../utils/storage";
 
-vi.mock("../utils/storage", () => ({
-  guardarPedidos: vi.fn(),
-  leerPedidos: vi.fn(),
-  leerSesion: vi.fn(),
+// El backend simulado rechaza las compras de más de 5 unidades.
+vi.mock("../services/pedidosService", () => ({
+  crearPedido: vi.fn(async ({ detalles }) => {
+    if (detalles[0].cantidad > 5) {
+      throw new Error("No hay stock suficiente para el producto 1");
+    }
+
+    return { id: 10, total: 200000, estado: "PENDIENTE" };
+  }),
 }));
 
-const carrito = [{ id: 1, nombre: "Guitarra", precio: 100000, cantidad: 2 }];
+vi.mock("../services/usuariosService", () => ({
+  buscarUsuarioPorCorreo: vi.fn(async () => ({ id: 3 })),
+}));
 
-describe("confirmación de la compra", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    leerPedidos.mockReturnValue([]);
-    leerSesion.mockReturnValue({ id: 3, rol: "USER" });
-  });
+vi.mock("../utils/storage", () => ({ leerSesion: vi.fn() }));
 
-  it("muestra los datos del comprador y el despacho elegido", async () => {
-    const user = userEvent.setup();
+async function comprar(cantidad, entrega) {
+  const user = userEvent.setup();
+  const carrito = [{ id: 1, nombre: "Guitarra", precio: 100000, cantidad }];
 
-    render(
-      <MemoryRouter initialEntries={["/checkout"]}>
-        <Routes>
-          <Route
-            path="/checkout"
-            element={<Checkout carrito={carrito} setCarrito={vi.fn()} />}
-          />
-          <Route path="/compra-exitosa" element={<CompraExitosa />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+  render(
+    <MemoryRouter initialEntries={["/checkout"]}>
+      <Routes>
+        <Route
+          path="/checkout"
+          element={<Checkout carrito={carrito} setCarrito={vi.fn()} />}
+        />
+        <Route path="/compra-exitosa" element={<CompraExitosa />} />
+      </Routes>
+    </MemoryRouter>,
+  );
 
-    await user.type(screen.getByLabelText("Nombre completo"), "Camila Soto");
-    await user.type(
-      screen.getByLabelText("Correo electrónico"),
-      "camila@sonidovivo.cl",
-    );
-    await user.selectOptions(
-      screen.getByLabelText("Tipo de entrega"),
-      "despacho",
-    );
+  await user.type(screen.getByLabelText("Nombre completo"), "Camila Soto");
+  await user.type(
+    screen.getByLabelText("Correo electrónico"),
+    "camila@sonidovivo.cl",
+  );
+  await user.selectOptions(screen.getByLabelText("Tipo de entrega"), entrega);
+
+  if (entrega === "despacho") {
     await user.type(
       screen.getByLabelText("Dirección de entrega"),
       "Avenida Prueba 123",
     );
-    await user.click(screen.getByRole("button", { name: "Confirmar compra" }));
+  }
+
+  await user.click(screen.getByRole("button", { name: "Confirmar compra" }));
+}
+
+describe("confirmación de la compra", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    leerSesion.mockReturnValue({ correo: "camila@sonidovivo.cl", rol: "USER" });
+  });
+
+  it("envía el pedido a la API y muestra el despacho", async () => {
+    await comprar(2, "despacho");
 
     expect(
       await screen.findByText("¡Compra realizada con éxito!"),
     ).toBeInTheDocument();
     expect(screen.getByText("Camila Soto")).toBeInTheDocument();
-    expect(screen.getByText("Despacho a domicilio")).toBeInTheDocument();
     expect(screen.getByText("Avenida Prueba 123")).toBeInTheDocument();
 
-    expect(guardarPedidos).toHaveBeenCalledWith([
-      expect.objectContaining({ usuarioId: 3, tipoEntrega: "Despacho" }),
-    ]);
+    expect(crearPedido).toHaveBeenCalledWith({
+      usuarioId: 3,
+      nombreCliente: "Camila Soto",
+      direccionEntrega: "Avenida Prueba 123",
+      detalles: [{ productoId: 1, cantidad: 2 }],
+    });
+  });
+
+  it("permite retirar en tienda sin dirección", async () => {
+    await comprar(1, "retiro");
+
+    expect(
+      await screen.findByText("¡Compra realizada con éxito!"),
+    ).toBeInTheDocument();
+    expect(crearPedido).toHaveBeenCalledWith(
+      expect.objectContaining({ direccionEntrega: "Retiro en tienda" }),
+    );
+  });
+
+  it("muestra el error si no hay stock", async () => {
+    await comprar(6, "retiro");
+
+    expect(
+      await screen.findByText("No hay stock suficiente para el producto 1"),
+    ).toBeInTheDocument();
   });
 });

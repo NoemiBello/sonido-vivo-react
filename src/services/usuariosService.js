@@ -1,4 +1,4 @@
-import { leerToken } from "../utils/storage";
+import { cerrarSesion, leerToken } from "../utils/storage";
 import { request } from "./request";
 
 const API_URL =
@@ -15,6 +15,10 @@ export async function buscarUsuarioPorCorreo(correo) {
 
   if (respuesta.status === 404) {
     return null;
+  }
+
+  if (respuesta.status === 401) {
+    cerrarSesion();
   }
 
   if (!respuesta.ok) {

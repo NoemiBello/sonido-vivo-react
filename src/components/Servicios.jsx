@@ -98,13 +98,13 @@ function Servicios() {
 
             <div className="campo-formulario">
               <label htmlFor="nombre">Nombre completo</label>
-              <input id="nombre" name="nombre" value={formulario.nombre} onChange={cambiar} aria-invalid={Boolean(errores.nombre)} />
+              <input id="nombre" name="nombre" maxLength={80} value={formulario.nombre} onChange={cambiar} aria-invalid={Boolean(errores.nombre)} />
               <small className="mensaje-error">{errores.nombre}</small>
             </div>
 
             <div className="campo-formulario">
               <label htmlFor="correo">Correo electrónico</label>
-              <input id="correo" name="correo" type="email" value={formulario.correo} onChange={cambiar} aria-invalid={Boolean(errores.correo)} />
+              <input id="correo" name="correo" type="email" maxLength={100} value={formulario.correo} onChange={cambiar} aria-invalid={Boolean(errores.correo)} />
               <small className="mensaje-error">{errores.correo}</small>
             </div>
 

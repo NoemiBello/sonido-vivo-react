@@ -4,9 +4,9 @@
 
 **Sonido Vivo** es una aplicación web desarrollada para una tienda de instrumentos musicales, equipos de sonido y accesorios.
 
-El proyecto fue construido como una **Single Page Application (SPA)** utilizando React y Vite. La aplicación incorpora catálogo de productos, carrito de compras, proceso de compra, autenticación simulada, gestión de usuarios, administración de productos y categorías, pedidos, reportes y servicios técnicos.
+El proyecto fue construido como una **Single Page Application (SPA)** utilizando React y Vite. La aplicación incorpora catálogo de productos, carrito de compras, proceso de compra, autenticación con JWT, gestión de usuarios, administración de productos y categorías, pedidos, reportes y servicios técnicos.
 
-El desarrollo corresponde a la Experiencia de Aprendizaje 2 de Fullstack II.
+El desarrollo corresponde a la Experiencia de Aprendizaje 3 de Fullstack II. El frontend consume los microservicios del repositorio [sonido-vivo-backend](https://github.com/NoemiBello/sonido-vivo-backend).
 
 ### **URL:** http://3.87.154.141/
 ---
@@ -22,7 +22,9 @@ El desarrollo corresponde a la Experiencia de Aprendizaje 2 de Fullstack II.
 | Bootstrap | Diseño responsive y componentes visuales |
 | React Bootstrap | Componentes Bootstrap integrados con React |
 | React Context | Estado compartido de productos, categorías y carrito |
-| localStorage | Persistencia simulada de información |
+| fetch | Comunicación con las API REST del backend |
+| sessionStorage | Sesión: token JWT, correo y rol |
+| localStorage | Carrito y pedidos (pendiente de conectar a Pedidos Service) |
 | Vitest | Ejecución de pruebas |
 | React Testing Library | Pruebas de componentes React |
 | user-event | Simulación de interacción del usuario |
@@ -88,7 +90,7 @@ El catálogo permite:
 - visualizar ofertas;
 - acceder al detalle de cada producto.
 
-Los productos se obtienen desde datos simulados en JavaScript.
+Los productos, categorías y existencias se obtienen desde Productos, Categorías e Inventario Service.
 
 ## Categorías
 
@@ -165,24 +167,42 @@ El pedido queda disponible posteriormente para los módulos de historial, admini
 
 # 👤 Usuarios y autenticación
 
-La aplicación contiene un sistema de autenticación simulado para esta etapa frontend.
+La autenticación se realiza contra **Auth Service**, que entrega un token JWT con una duración de 1 hora.
 
-Se incluyen los roles:
+| Rol | Valor en el JWT | Página inicial |
+|---|---|---|
+| Cliente | `USER` | `/perfil` |
+| Vendedor | `VENDEDOR` | `/vendedor` |
+| Administrador | `ADMIN` | `/admin` |
 
-- Cliente
-- Vendedor
-- Administrador
+Usuarios de prueba (datos iniciales de Auth Service, clave `123456`): `admin@sonidovivo.cl`, `vendedor@sonidovivo.cl` y `camila@sonidovivo.cl`.
+
+## Sesión
+
+- El token, el correo y el rol se guardan en `sessionStorage` mediante `src/utils/storage.js`. La contraseña no se guarda.
+- La sesión se mantiene al recargar la página.
+- El token se renueva con `/refresh` cuando lleva más de 30 minutos emitido.
+- Si la API rechaza el token, la sesión se cierra y se vuelve al login.
+
+## Rutas protegidas
+
+`src/components/RutaProtegida.jsx` controla el acceso según el rol. El backend vuelve a validar cada petición.
+
+| Rutas | Roles |
+|---|---|
+| `/perfil`, `/historial`, `/checkout` | `USER`, `ADMIN` |
+| `/vendedor` | `VENDEDOR`, `ADMIN` |
+| `/admin` | `ADMIN` |
 
 Dependiendo del rol, el usuario es dirigido hacia diferentes áreas de la aplicación.
 
 ## Registro
 
-El formulario de registro permite crear nuevos usuarios y contiene validaciones personalizadas para:
+El registro se realiza en dos pasos: Auth Service crea la cuenta y Usuarios Service guarda los datos personales. El formulario contiene validaciones personalizadas para:
 
 - nombre;
 - apellido;
 - correo electrónico;
-- correo repetido;
 - contraseña;
 - confirmación de contraseña.
 
@@ -197,12 +217,12 @@ Se valida:
 - contraseña obligatoria;
 - contraseña con mínimo 6 caracteres.
 
-Si los datos cumplen las reglas de formato, posteriormente se comprueban las credenciales contra los usuarios simulados.
+Si los datos cumplen las reglas de formato, posteriormente Auth Service comprueba las credenciales.
 
 Cuando las credenciales son incorrectas se muestra:
 
 ```text
-Correo o contraseña incorrectos.
+Credenciales inválidas
 ```
 
 Las validaciones son manejadas desde React y no dependen de los mensajes automáticos del navegador.
@@ -213,7 +233,8 @@ Las validaciones son manejadas desde React y no dependen de los mensajes automá
 
 Los clientes pueden acceder a:
 
-- información de perfil;
+- información de perfil, editable y guardada en Usuarios Service;
+- estado de sus solicitudes de servicio técnico;
 - historial de compras.
 
 El historial obtiene los pedidos asociados al usuario autenticado.
@@ -222,7 +243,7 @@ El historial obtiene los pedidos asociados al usuario autenticado.
 
 # 🛠️ Servicios técnicos
 
-La sección de servicios permite solicitar una revisión simulada de instrumentos de cuerda.
+La sección de servicios permite solicitar una revisión de instrumentos de cuerda. La solicitud se guarda en Servicios Técnicos Service y el administrador avanza su estado.
 
 Incluye:
 
@@ -249,7 +270,7 @@ La aplicación incluye:
 - listado de publicaciones;
 - detalle individual de publicaciones.
 
-Este módulo utiliza información simulada almacenada en JavaScript.
+Este módulo obtiene la información desde Publicaciones Service.
 
 ---
 
@@ -291,7 +312,13 @@ Permite:
 - crear usuarios;
 - modificar usuarios;
 - administrar roles;
-- gestionar el estado de los usuarios.
+- desactivar y reactivar cuentas.
+
+La cuenta y el rol se guardan en Auth Service; los datos personales, en Usuarios Service. Ambos se relacionan por el correo.
+
+## Servicios técnicos
+
+Permite ver las solicitudes, avanzar su estado y eliminarlas.
 
 ## Administración de pedidos
 
@@ -319,30 +346,24 @@ El módulo de reportes presenta indicadores como:
 
 # 💾 Gestión de datos
 
-Durante esta etapa del proyecto no se utiliza todavía un backend real.
+El frontend se comunica con los microservicios mediante HTTP y JSON. Las direcciones se configuran en `.env.development`, a partir de `.env.example`.
 
-Los datos son simulados mediante archivos JavaScript y persistencia local.
+| Servicio | Variable | Archivo |
+|---|---|---|
+| Auth | `VITE_AUTH_API_URL` | `src/services/authService.js` |
+| Usuarios | `VITE_USUARIOS_API_URL` | `src/services/usuariosService.js` |
+| Servicios Técnicos | `VITE_SERVICIOS_TECNICOS_API_URL` | `src/services/serviciosTecnicosService.js` |
+| Productos, Categorías e Inventario | `VITE_PRODUCTOS_API_URL`, `VITE_CATEGORIAS_API_URL`, `VITE_INVENTARIO_API_URL` | `src/services/catalogoService.js` |
+| Publicaciones | `VITE_PUBLICACIONES_API_URL` | `src/services/publicacionesService.js` |
+| Contacto | `VITE_CONTACTO_API_URL` | `src/services/contactoService.js` |
 
-La estructura principal incluye:
-
-```text
-src/data/
-├── datos.js
-├── pedidos.js
-├── publicaciones.js
-└── usuarios.js
-```
-
-También se utilizan funciones auxiliares ubicadas en:
+Flujo de datos:
 
 ```text
-src/utils/
-├── productos.js
-├── storage.js
-└── validaciones.js
+Página → src/services → request() con Bearer → microservicio → JSON → estado de React
 ```
 
-`storage.js` centraliza operaciones relacionadas con la persistencia simulada.
+Los pedidos todavía se guardan en `localStorage`; su conexión con Pedidos Service está pendiente.
 
 ---
 
@@ -364,19 +385,27 @@ nombre.spec.jsx
 
 Los tests se encuentran junto a los módulos que evalúan.
 
-Actualmente el proyecto cuenta con **30 casos de prueba** distribuidos en 10 archivos.
+Actualmente el proyecto cuenta con **70 casos de prueba** distribuidos en 18 archivos.
 
 ## Archivos de prueba
 
 ```text
 src/components/Carrito.spec.jsx
 src/components/Catalogo.spec.jsx
+src/components/Checkout.spec.jsx
+src/components/Navegacion.spec.jsx
+src/components/RutaProtegida.spec.jsx
 src/components/SelectorCantidad.spec.jsx
 src/components/Servicios.spec.jsx
+src/pages/AccesoCatalogo.spec.jsx
 src/pages/Login.spec.jsx
+src/pages/Perfil.spec.jsx
 src/pages/Registro.spec.jsx
 src/pages/Vendedor.spec.jsx
+src/pages/admin/AdminServicios.spec.jsx
 src/pages/admin/AdminUsuarios.spec.jsx
+src/services/catalogoService.spec.js
+src/services/request.spec.jsx
 src/utils/productos.spec.jsx
 src/utils/validaciones.spec.jsx
 ```
@@ -398,6 +427,11 @@ Las pruebas verifican comportamientos como:
 - Login;
 - Registro;
 - mocks de funciones;
+- sesión y renovación del token;
+- rutas y menú según el rol;
+- errores de la API;
+- perfil;
+- servicios técnicos;
 - administración de usuarios;
 - CRUD de productos;
 - CRUD de categorías;
@@ -413,8 +447,8 @@ Ejemplo:
 
 ```javascript
 vi.mock("../utils/storage", () => ({
-  leerUsuarios: vi.fn(),
   guardarSesion: vi.fn(),
+  leerSesion: vi.fn(),
 }));
 ```
 
@@ -436,10 +470,10 @@ Resultados actuales:
 
 | Métrica | Cobertura |
 |---|---:|
-| Statements | 86.37% |
-| Branches | 83.01% |
-| Functions | 92.70% |
-| Lines | 86.25% |
+| Statements | 87.61% |
+| Branches | 81.81% |
+| Functions | 86.90% |
+| Lines | 89.25% |
 
 Todas las métricas globales se encuentran sobre el **80% de cobertura**.
 
@@ -550,6 +584,7 @@ sonido-vivo-react/
 │   ├── context/
 │   ├── data/
 │   ├── pages/
+│   ├── services/
 │   ├── styles/
 │   │   └── EstilosGlobales.jsx
 │   ├── test/
@@ -596,6 +631,8 @@ npm install
 ---
 
 # ▶️ Ejecutar aplicación
+
+Los microservicios deben estar iniciados (ver el README del backend). Luego:
 
 ```bash
 npm run dev
@@ -711,8 +748,9 @@ Actualmente la aplicación cuenta con:
 - carrito;
 - Checkout;
 - usuarios;
-- autenticación simulada;
-- roles;
+- autenticación con JWT y renovación del token;
+- rutas y menú protegidos por rol;
+- integración con los microservicios;
 - validaciones personalizadas;
 - perfil;
 - historial de compras;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   actualizarUsuario,
   buscarUsuarioPorCorreo,
@@ -105,6 +105,11 @@ export default function Perfil() {
     navigate("/login");
   }
 
+  // Si la API rechazó el token, la sesión ya se cerró: se vuelve al login.
+  if (!sesion) {
+    return <Navigate to="/login" replace />;
+  }
+
   if (cargando) {
     return <p className="container py-5">Cargando perfil...</p>;
   }
@@ -117,27 +122,27 @@ export default function Perfil() {
       <div className="card bg-dark text-light border-secondary mt-4">
         <div className="card-body">
           <p><strong>Correo:</strong> {correo}</p>
-          <p><strong>Rol:</strong> {nombreRol(sesion?.rol)}</p>
+          <p><strong>Rol:</strong> {nombreRol(sesion.rol)}</p>
 
           <form className="row g-3 mb-4" onSubmit={guardar} noValidate>
             <div className="col-12 col-md-6">
               <label className="form-label" htmlFor="perfil-nombre">Nombre</label>
-              <input className="form-control" id="perfil-nombre" name="nombre" value={ficha.nombre} onChange={cambiar} />
+              <input className="form-control" id="perfil-nombre" name="nombre" maxLength={80} value={ficha.nombre} onChange={cambiar} />
             </div>
 
             <div className="col-12 col-md-6">
               <label className="form-label" htmlFor="perfil-apellido">Apellido</label>
-              <input className="form-control" id="perfil-apellido" name="apellido" value={ficha.apellido} onChange={cambiar} />
+              <input className="form-control" id="perfil-apellido" name="apellido" maxLength={80} value={ficha.apellido} onChange={cambiar} />
             </div>
 
             <div className="col-12 col-md-6">
               <label className="form-label" htmlFor="perfil-telefono">Teléfono</label>
-              <input className="form-control" id="perfil-telefono" name="telefono" value={ficha.telefono} onChange={cambiar} />
+              <input className="form-control" id="perfil-telefono" name="telefono" maxLength={15} value={ficha.telefono} onChange={cambiar} />
             </div>
 
             <div className="col-12 col-md-6">
               <label className="form-label" htmlFor="perfil-direccion">Dirección</label>
-              <input className="form-control" id="perfil-direccion" name="direccion" value={ficha.direccion} onChange={cambiar} />
+              <input className="form-control" id="perfil-direccion" name="direccion" maxLength={200} value={ficha.direccion} onChange={cambiar} />
             </div>
 
             {error && <p className="text-danger mb-0" role="alert">{error}</p>}
@@ -153,7 +158,7 @@ export default function Perfil() {
           <div className="d-flex flex-wrap gap-2">
             <Link className="btn btn-outline-info" to="/historial">Ver historial de compras</Link>
 
-            {sesion?.rol === "ADMIN" && (
+            {sesion.rol === "ADMIN" && (
               <Link className="btn btn-info" to="/admin">Ir al panel administrativo</Link>
             )}
 

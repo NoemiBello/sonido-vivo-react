@@ -80,6 +80,7 @@ export default function Registro() {
             className="form-control"
             id="registro-nombre"
             name="nombre"
+            maxLength={80}
             value={formulario.nombre}
             onChange={cambiar}
           />
@@ -94,6 +95,7 @@ export default function Registro() {
             className="form-control"
             id="registro-apellido"
             name="apellido"
+            maxLength={80}
             value={formulario.apellido}
             onChange={cambiar}
           />
@@ -108,6 +110,7 @@ export default function Registro() {
             className="form-control"
             id="registro-correo"
             name="correo"
+            maxLength={100}
             type="email"
             value={formulario.correo}
             onChange={cambiar}

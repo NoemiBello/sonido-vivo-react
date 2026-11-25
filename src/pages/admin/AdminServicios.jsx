@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import {
   cambiarEstadoSolicitud,
   eliminarSolicitud,
   listarSolicitudes,
 } from "../../services/serviciosTecnicosService";
+import { leerSesion } from "../../utils/storage";
 
 // Mismo orden que valida el backend: el estado avanza de a un paso.
 const ESTADOS = [
@@ -62,6 +64,11 @@ export default function AdminServicios() {
     } catch (e) {
       setError(e.message);
     }
+  }
+
+  // Si la API rechazó el token, la sesión ya se cerró: se vuelve al login.
+  if (!leerSesion()) {
+    return <Navigate to="/login" replace />;
   }
 
   if (cargando) {

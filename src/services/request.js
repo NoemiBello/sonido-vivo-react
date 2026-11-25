@@ -1,4 +1,4 @@
-import { leerToken } from "../utils/storage";
+import { cerrarSesion, leerToken } from "../utils/storage";
 
 // Función común para llamar a las API (guía 17): agrega el token si existe,
 // convierte la respuesta y transforma los errores del backend en Error.
@@ -20,23 +20,22 @@ export async function request(url, opciones = {}) {
 }
 
 // El backend responde { "error": "mensaje" }. Los 401 y 403 de Spring Security
-// llegan sin ese cuerpo, por eso se usa un mensaje propio.
+// llegan sin ese cuerpo: el token ya no sirve, así que se cierra la sesión.
 async function leerMensaje(respuesta) {
-  let mensaje = `Solicitud rechazada: ${respuesta.status}`;
-
-  if (respuesta.status === 401 || respuesta.status === 403) {
-    mensaje = "Tu sesión expiró o no tienes permiso para esta acción.";
-  }
-
   try {
     const datos = await respuesta.json();
 
     if (datos.error) {
-      mensaje = datos.error;
+      return datos.error;
     }
   } catch {
-    // La respuesta no traía JSON: se mantiene el mensaje general.
+    // La respuesta no traía JSON: se usa uno de los mensajes siguientes.
   }
 
-  return mensaje;
+  if (respuesta.status === 401 || respuesta.status === 403) {
+    cerrarSesion();
+    return "Tu sesión expiró o no tienes permiso para esta acción.";
+  }
+
+  return `Solicitud rechazada: ${respuesta.status}`;
 }

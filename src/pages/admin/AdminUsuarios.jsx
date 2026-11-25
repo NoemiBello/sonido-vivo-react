@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import {
   actualizarCuenta,
   crearCuenta,
@@ -157,6 +158,11 @@ export default function AdminUsuarios() {
     setError("");
   }
 
+  // Si la API rechazó el token, la sesión ya se cerró: se vuelve al login.
+  if (!sesion) {
+    return <Navigate to="/login" replace />;
+  }
+
   if (cargando) {
     return <p>Cargando usuarios...</p>;
   }
@@ -168,18 +174,18 @@ export default function AdminUsuarios() {
       <form className="row g-3 my-3" onSubmit={guardar} data-testid="form-usuarios" noValidate>
         <div className="col-12 col-md-6">
           <label className="form-label" htmlFor="admin-nombre">Nombre</label>
-          <input className="form-control" id="admin-nombre" name="nombre" value={formulario.nombre} onChange={cambiar} />
+          <input className="form-control" id="admin-nombre" name="nombre" maxLength={80} value={formulario.nombre} onChange={cambiar} />
         </div>
 
         <div className="col-12 col-md-6">
           <label className="form-label" htmlFor="admin-apellido">Apellido</label>
-          <input className="form-control" id="admin-apellido" name="apellido" value={formulario.apellido} onChange={cambiar} />
+          <input className="form-control" id="admin-apellido" name="apellido" maxLength={80} value={formulario.apellido} onChange={cambiar} />
         </div>
 
         <div className="col-12 col-md-6">
           <label className="form-label" htmlFor="admin-correo">Correo</label>
           {/* El correo une la cuenta con sus datos: no se cambia al editar */}
-          <input className="form-control" id="admin-correo" name="correo" type="email" value={formulario.correo} onChange={cambiar} disabled={Boolean(formulario.id)} />
+          <input className="form-control" id="admin-correo" name="correo" type="email" maxLength={100} value={formulario.correo} onChange={cambiar} disabled={Boolean(formulario.id)} />
         </div>
 
         {!formulario.id && (
@@ -200,12 +206,12 @@ export default function AdminUsuarios() {
 
         <div className="col-12 col-md-6">
           <label className="form-label" htmlFor="admin-telefono">Teléfono</label>
-          <input className="form-control" id="admin-telefono" name="telefono" value={formulario.telefono} onChange={cambiar} />
+          <input className="form-control" id="admin-telefono" name="telefono" maxLength={15} value={formulario.telefono} onChange={cambiar} />
         </div>
 
         <div className="col-12 col-md-6">
           <label className="form-label" htmlFor="admin-direccion">Dirección</label>
-          <input className="form-control" id="admin-direccion" name="direccion" value={formulario.direccion} onChange={cambiar} />
+          <input className="form-control" id="admin-direccion" name="direccion" maxLength={200} value={formulario.direccion} onChange={cambiar} />
         </div>
 
         {formulario.id && (
@@ -257,7 +263,7 @@ export default function AdminUsuarios() {
                     </button>
 
                     {/* Un administrador no puede desactivar su propia cuenta */}
-                    {usuario.activo && usuario.correo !== sesion?.correo && (
+                    {usuario.activo && usuario.correo !== sesion.correo && (
                       <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => desactivar(usuario)}>
                         Desactivar
                       </button>

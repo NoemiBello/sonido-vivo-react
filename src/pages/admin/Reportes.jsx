@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { listarCuentas } from "../../services/authService";
-import { leerPedidos } from "../../utils/storage";
+import { leerPedidos, leerSesion } from "../../utils/storage";
 
 export default function Reportes() {
   const pedidos = leerPedidos();
@@ -38,6 +39,11 @@ export default function Reportes() {
     { nombre: "Clientes activos", valor: clientesActivos },
     { nombre: "Ventas entregadas", valor: `$${ventas.toLocaleString("es-CL")}` },
   ];
+
+  // Si la API rechazó el token, la sesión ya se cerró: se vuelve al login.
+  if (!leerSesion()) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <>

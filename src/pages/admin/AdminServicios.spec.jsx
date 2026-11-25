@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 
 import AdminServicios from "./AdminServicios";
 import {
@@ -8,12 +9,23 @@ import {
   eliminarSolicitud,
   listarSolicitudes,
 } from "../../services/serviciosTecnicosService";
+import { leerSesion } from "../../utils/storage";
 
 vi.mock("../../services/serviciosTecnicosService", () => ({
   cambiarEstadoSolicitud: vi.fn(),
   eliminarSolicitud: vi.fn(),
   listarSolicitudes: vi.fn(),
 }));
+
+vi.mock("../../utils/storage", () => ({ leerSesion: vi.fn() }));
+
+function renderServicios() {
+  return render(
+    <MemoryRouter>
+      <AdminServicios />
+    </MemoryRouter>,
+  );
+}
 
 const solicitud = {
   id: 1,
@@ -29,6 +41,7 @@ const solicitud = {
 describe("administración de servicios técnicos", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    leerSesion.mockReturnValue({ rol: "ADMIN" });
     listarSolicitudes.mockResolvedValue([solicitud]);
   });
 
@@ -39,15 +52,13 @@ describe("administración de servicios técnicos", () => {
       estado: "EN_REVISION",
     });
 
-    render(<AdminServicios />);
+    renderServicios();
 
-    await user.click(
-      await screen.findByRole("button", { name: "Pasar a EN_REVISION" }),
-    );
+    await user.click(await screen.findByText("Pasar a EN_REVISION"));
 
     expect(cambiarEstadoSolicitud).toHaveBeenCalledWith(1, "EN_REVISION");
     expect(
-      await screen.findByRole("button", { name: "Pasar a EN_REPARACION" }),
+      await screen.findByText("Pasar a EN_REPARACION"),
     ).toBeInTheDocument();
   });
 
@@ -56,7 +67,7 @@ describe("administración de servicios técnicos", () => {
       { ...solicitud, estado: "ENTREGADO" },
     ]);
 
-    render(<AdminServicios />);
+    renderServicios();
 
     expect(await screen.findByText("ENTREGADO")).toBeInTheDocument();
     expect(
@@ -69,9 +80,9 @@ describe("administración de servicios técnicos", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     eliminarSolicitud.mockResolvedValue(null);
 
-    render(<AdminServicios />);
+    renderServicios();
 
-    await user.click(await screen.findByRole("button", { name: "Eliminar" }));
+    await user.click(await screen.findByText("Eliminar"));
 
     expect(eliminarSolicitud).toHaveBeenCalledWith(1);
     expect(

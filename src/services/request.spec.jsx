@@ -1,21 +1,40 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { request } from "./request";
-import { leerToken } from "../utils/storage";
+import { cerrarSesion, leerToken } from "../utils/storage";
 
-vi.mock("../utils/storage", () => ({ leerToken: vi.fn() }));
+vi.mock("../utils/storage", () => ({
+  cerrarSesion: vi.fn(),
+  leerToken: vi.fn(),
+}));
+
+// Devuelve el mensaje del error que lanza request().
+async function mensajeDeError() {
+  try {
+    await request("/ruta");
+    return "sin error";
+  } catch (error) {
+    return error.message;
+  }
+}
 
 describe("llamadas a la API", () => {
+  let fetchSimulado;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    globalThis.fetch = vi.fn();
+    fetchSimulado = vi.spyOn(window, "fetch");
   });
 
   it("agrega el token Bearer cuando hay sesión", async () => {
     leerToken.mockReturnValue("abc");
-    fetch.mockResolvedValue({ ok: true, status: 200, json: async () => [1] });
+    fetchSimulado.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => [1],
+    });
 
     expect(await request("/ruta")).toEqual([1]);
-    expect(fetch).toHaveBeenCalledWith("/ruta", {
+    expect(fetchSimulado).toHaveBeenCalledWith("/ruta", {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer abc",
@@ -25,27 +44,26 @@ describe("llamadas a la API", () => {
 
   it("devuelve null cuando la respuesta es 204", async () => {
     leerToken.mockReturnValue(null);
-    fetch.mockResolvedValue({ ok: true, status: 204 });
+    fetchSimulado.mockResolvedValue({ ok: true, status: 204 });
 
-    expect(await request("/ruta", { method: "DELETE" })).toBeNull();
+    expect(await request("/ruta", { method: "DELETE" })).toEqual(null);
   });
 
-  it("usa el mensaje de error del backend", async () => {
-    leerToken.mockReturnValue(null);
-    fetch.mockResolvedValue({
+  it("usa el mensaje de error del backend y mantiene la sesión", async () => {
+    leerToken.mockReturnValue("abc");
+    fetchSimulado.mockResolvedValue({
       ok: false,
-      status: 400,
-      json: async () => ({ error: "El correo ya está registrado" }),
+      status: 401,
+      json: async () => ({ error: "Credenciales inválidas" }),
     });
 
-    await expect(request("/ruta")).rejects.toThrow(
-      "El correo ya está registrado",
-    );
+    expect(await mensajeDeError()).toEqual("Credenciales inválidas");
+    expect(cerrarSesion).not.toHaveBeenCalled();
   });
 
-  it("avisa cuando falta permiso y la respuesta no trae cuerpo", async () => {
+  it("cierra la sesión cuando la API rechaza el token", async () => {
     leerToken.mockReturnValue("abc");
-    fetch.mockResolvedValue({
+    fetchSimulado.mockResolvedValue({
       ok: false,
       status: 401,
       json: async () => {
@@ -53,8 +71,21 @@ describe("llamadas a la API", () => {
       },
     });
 
-    await expect(request("/ruta")).rejects.toThrow(
+    expect(await mensajeDeError()).toEqual(
       "Tu sesión expiró o no tienes permiso para esta acción.",
     );
+    expect(cerrarSesion).toHaveBeenCalledTimes(1);
+  });
+
+  it("informa el código en otros errores", async () => {
+    leerToken.mockReturnValue(null);
+    fetchSimulado.mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    });
+
+    expect(await mensajeDeError()).toEqual("Solicitud rechazada: 404");
+    expect(cerrarSesion).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { useTienda } from "../../context/TiendaContext";
 import { listarCuentas } from "../../services/authService";
-import { leerPedidos } from "../../utils/storage";
+import { leerPedidos, leerSesion } from "../../utils/storage";
 
 export default function DashboardAdmin() {
   const { productos, categorias } = useTienda();
@@ -31,6 +32,11 @@ export default function DashboardAdmin() {
     { titulo: "Usuarios", valor: cuentas.length },
     { titulo: "Pedidos", valor: pedidos.length },
   ];
+
+  // Si la API rechazó el token, la sesión ya se cerró: se vuelve al login.
+  if (!leerSesion()) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <>

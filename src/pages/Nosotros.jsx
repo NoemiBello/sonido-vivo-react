@@ -22,6 +22,26 @@ export default function Nosotros() {
           </div>
         </div>
       </div>
+
+      <h2 className="h4 mt-5">Dónde estamos</h2>
+      <p>Retiro en tienda: Viña del Mar, Región de Valparaíso. Lunes a viernes, de 09:00 a 18:00 hrs.</p>
+
+      <div className="ratio ratio-16x9">
+        <iframe
+          title="Mapa de la tienda y punto de retiro"
+          src="https://www.google.com/maps?q=Vi%C3%B1a%20del%20Mar%2C%20Chile&z=14&output=embed"
+          loading="lazy"
+        />
+      </div>
+
+      <a
+        className="btn btn-outline-info mt-3"
+        href="https://www.google.com/maps/dir/?api=1&destination=Vi%C3%B1a%20del%20Mar%2C%20Chile"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Cómo llegar
+      </a>
     </section>
   );
 }

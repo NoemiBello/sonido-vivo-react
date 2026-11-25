@@ -24,7 +24,7 @@ El desarrollo corresponde a la Experiencia de Aprendizaje 3 de Fullstack II. El 
 | React Context | Estado compartido de productos, categorías y carrito |
 | fetch | Comunicación con las API REST del backend |
 | sessionStorage | Sesión: token JWT, correo y rol |
-| localStorage | Carrito y pedidos (pendiente de conectar a Pedidos Service) |
+| localStorage | Carrito de compras |
 | Vitest | Ejecución de pruebas |
 | React Testing Library | Pruebas de componentes React |
 | user-event | Simulación de interacción del usuario |
@@ -149,7 +149,7 @@ El proceso de compra permite:
 - visualizar el total;
 - confirmar la compra.
 
-Al confirmar una compra se crea un pedido simulado con información como:
+Al confirmar una compra se crea un pedido en Pedidos Service, que calcula el total y descuenta el stock. Contiene:
 
 - identificador;
 - usuario;
@@ -276,14 +276,9 @@ Este módulo obtiene la información desde Publicaciones Service.
 
 # 🧑‍💼 Panel del vendedor
 
-El vendedor puede administrar:
+El vendedor solo visualiza la lista y el detalle de productos y de órdenes (Anexo 1).
 
-- productos;
-- stock;
-- productos con stock crítico;
-- categorías.
-
-Las funcionalidades incluyen operaciones CRUD:
+El administrador gestiona desde el mismo panel productos, stock y categorías, con operaciones CRUD:
 
 | Operación | Descripción |
 |---|---|
@@ -327,15 +322,13 @@ Permite visualizar pedidos registrados y cambiar su estado.
 Estados disponibles:
 
 ```text
-En preparación
-Despachado
-Entregado
-Cancelado
+Pendiente → En preparación → Despachado → Entregado
+Pendiente o En preparación → Cancelado
 ```
 
 ## Reportes
 
-El módulo de reportes presenta indicadores como:
+El módulo de reportes permite filtrar por período y presenta indicadores como:
 
 - pedidos registrados;
 - pedidos entregados;
@@ -354,6 +347,7 @@ El frontend se comunica con los microservicios mediante HTTP y JSON. Las direcci
 | Usuarios | `VITE_USUARIOS_API_URL` | `src/services/usuariosService.js` |
 | Servicios Técnicos | `VITE_SERVICIOS_TECNICOS_API_URL` | `src/services/serviciosTecnicosService.js` |
 | Productos, Categorías e Inventario | `VITE_PRODUCTOS_API_URL`, `VITE_CATEGORIAS_API_URL`, `VITE_INVENTARIO_API_URL` | `src/services/catalogoService.js` |
+| Pedidos | `VITE_PEDIDOS_API_URL` | `src/services/pedidosService.js` |
 | Publicaciones | `VITE_PUBLICACIONES_API_URL` | `src/services/publicacionesService.js` |
 | Contacto | `VITE_CONTACTO_API_URL` | `src/services/contactoService.js` |
 
@@ -363,7 +357,7 @@ Flujo de datos:
 Página → src/services → request() con Bearer → microservicio → JSON → estado de React
 ```
 
-Los pedidos todavía se guardan en `localStorage`; su conexión con Pedidos Service está pendiente.
+Solo el carrito se guarda en `localStorage`.
 
 ---
 
@@ -385,7 +379,7 @@ nombre.spec.jsx
 
 Los tests se encuentran junto a los módulos que evalúan.
 
-Actualmente el proyecto cuenta con **70 casos de prueba** distribuidos en 18 archivos.
+Actualmente el proyecto cuenta con **78 casos de prueba** distribuidos en 21 archivos.
 
 ## Archivos de prueba
 

@@ -60,8 +60,17 @@ function Checkout({ carrito, setCarrito }) {
 
   setCarrito([]);
 
+  // La página de compra exitosa muestra los datos del formulario.
   navigate("/compra-exitosa", {
-    state: { pedido },
+    state: {
+      pedido: {
+        ...pedido,
+        nombre: datos.get("nombre"),
+        correo: datos.get("correo"),
+        tipoEntrega,
+        productos: carrito,
+      },
+    },
   });
 }
     const total = carrito.reduce(

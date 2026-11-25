@@ -102,10 +102,15 @@ function Contenido() {
           <Route element={<RutaProtegida roles={["VENDEDOR", "ADMIN"]} />}>
             <Route path="/vendedor" element={<VendedorLayout />}>
               <Route index element={<ListaProductos />} />
-              <Route path="stock-critico" element={<ListaProductos criticos />} />
-              <Route path="productos/nuevo" element={<FormularioProducto key="nuevo" />} />
-              <Route path="productos/:id/editar" element={<FormularioProducto />} />
-              <Route path="categorias" element={<AdminCategorias />} />
+              <Route path="productos/:id" element={<DetalleProducto agregarAlCarrito={agregarAlCarrito} />} />
+
+              {/* Anexo 1: crear y editar es solo del administrador */}
+              <Route element={<RutaProtegida roles={["ADMIN"]} />}>
+                <Route path="stock-critico" element={<ListaProductos criticos />} />
+                <Route path="productos/nuevo" element={<FormularioProducto key="nuevo" />} />
+                <Route path="productos/:id/editar" element={<FormularioProducto />} />
+                <Route path="categorias" element={<AdminCategorias />} />
+              </Route>
             </Route>
           </Route>
 
